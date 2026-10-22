@@ -1,0 +1,4 @@
+[
+  {"role":"assistant","content":null,"tool_calls":[{"id":"read1","type":"function","function":{"name":"read_file","arguments":"{\"path\":\"billing.py\"}"}}]},
+  {"role":"assistant","content":"实际读取 billing.py；示例使用进程内字典保存 request_key。"}
+]

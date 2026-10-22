@@ -1,0 +1,7 @@
+{
+  "tasks": [
+    {"id": "inspect", "goal": "Read the refund implementation", "script": "read-only.json"},
+    {"id": "search", "goal": "Find refund idempotency evidence", "script": "read-and-search.json"},
+    {"id": "summary", "goal": "Summarize implementation limits", "depends_on": ["inspect", "search"], "script": "summary.json"}
+  ]
+}

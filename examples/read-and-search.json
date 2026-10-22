@@ -1,0 +1,5 @@
+[
+  {"role":"assistant","content":null,"tool_calls":[{"id":"search1","type":"function","function":{"name":"search_code","arguments":"{\"query\":\"refund_order request_key\"}"}}]},
+  {"role":"assistant","content":null,"tool_calls":[{"id":"read1","type":"function","function":{"name":"read_file","arguments":"{\"path\":\"billing.py\"}"}}]},
+  {"role":"assistant","content":"billing.py 的退款示例按 request_key 复用进程内字典结果。它没有持久化、金额冲突校验或跨进程幂等保证。此回复来自固定演示脚本，真实文件与检索工具已经执行。"}
+]

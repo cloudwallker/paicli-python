@@ -1,0 +1,4 @@
+[
+  {"role":"assistant","content":null,"tool_calls":[{"id":"write1","type":"function","function":{"name":"write_file","arguments":"{\"path\":\"review.txt\",\"content\":\"Review: idempotency is currently process-local.\\n\"}"}}]},
+  {"role":"assistant","content":"写入请求已处理，请以工具轨迹中的 ok 和磁盘内容为准；固定脚本不会判断审批是否通过。"}
+]

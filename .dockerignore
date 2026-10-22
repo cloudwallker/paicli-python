@@ -1,0 +1,14 @@
+.git
+.venv
+**/.paicli
+**/__pycache__
+*.egg-info
+.env
+.env.*
+*.pem
+*.key
+*.sqlite*
+*.db
+output
+dist
+build

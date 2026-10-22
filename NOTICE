@@ -1,0 +1,16 @@
+PaiCLI Python
+
+This Python implementation follows the coding-agent concepts studied in PaiCLI
+and the author's independently implemented Java FlowTrail CLI:
+https://github.com/cloudwallker/flowtrail-cli
+Reference revision: 845ae7c5266f45dba16d0cc32a5c2d5da3122b82
+
+The Python source was written for this repository with AI coding assistance.
+It is a focused implementation, not a line-by-line port or a claim of feature
+parity. The inherited MIT license and original contributor notice are retained.
+The README explicitly separates lexical retrieval and application-level path
+policies from vector retrieval and operating-system sandboxing.
+
+Runtime dependencies are installed separately and retain their own licenses.
+No Java distribution, dependency binaries, personal data or credentials are
+included in this source repository.
