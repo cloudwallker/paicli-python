@@ -49,7 +49,7 @@ paicli audit --workspace examples/codebase
 
 Run `index` before searching. Indexing rebuilds the local index; changed or deleted files are excluded from search results until the next rebuild. Python functions/classes use AST boundaries, with large blocks split into 100-line windows. Other supported text files use line windows. Retrieval is lexical and needs no embedding model.
 
-The default provider is `scripted`, which requires `--script` or a script for each plan task. It never silently replaces a failed remote model. All successful commands emit JSON; `--json` is accepted explicitly. Use `paicli <command> --help` for options.
+The default provider is `scripted`, which requires `--script` or a script for each plan task. It never silently replaces a failed remote model. All successful commands emit JSON; `--json` is accepted explicitly. JSON output uses ASCII-safe Unicode escapes for locale-independent pipes; parsing restores the original Unicode text. Use `paicli <command> --help` for options.
 
 ### Inspect and approve a write
 
@@ -98,7 +98,7 @@ python -m unittest discover -s tests -v
 paicli demo --json
 ```
 
-Local verification on **2026-10-22**, Windows / Python 3.12.14: **41 tests passed, 0 failed, 0 skipped**. Coverage includes traversal and link boundaries, exact/denied/expired approvals, model errors and tool messages, context budgets, stale indexes, DAG validation/concurrency/cancellation, loopback diagnostics, and API request protocols. The installed CLI and example commands were also exercised. Remote model behavior and Docker builds were not verified locally. CI is configured for Ubuntu/Windows with Python 3.11/3.12; configuration is not a claim that those remote runs have passed.
+Local verification from **2026-10-22 to 2026-10-23**, Windows / Python 3.12.14: **42 tests passed, 0 failed, 0 skipped**, including a full run with `PYTHONIOENCODING=cp1252` and UTF-8 mode disabled. Coverage includes traversal and link boundaries, exact/denied/expired approvals, model errors and tool messages, context budgets, stale indexes, DAG validation/concurrency/cancellation, loopback diagnostics, API request protocols, and subprocess Unicode preservation under cp1252/ASCII output encodings. The installed CLI and example commands were also exercised. Remote model behavior and Docker builds were not verified locally. CI is configured for Ubuntu/Windows with Python 3.11/3.12; configuration is not a claim that those remote runs have passed.
 
 `src/paicli/` contains the CLI, Agent, tools, storage, index, planner, and API adapters. `tests/` contains the standard-library test suite; `examples/` contains inspectable fixtures and scripted responses. A Dockerfile is included for subsequent container validation.
 

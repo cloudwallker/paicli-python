@@ -23,6 +23,18 @@ class CLITests(unittest.TestCase):
         self.assertTrue(data["write_denied"])
         self.assertEqual(set(data["plan"]), {"inspect", "search", "summary"})
 
+    def test_json_output_preserves_chinese_with_non_utf8_stdio(self):
+        expected = "billing.py 的 refund_order 使用 request_key 查询进程内字典，重复请求返回已有结果；进程重启后记录会丢失。该结论是显式脚本回复，用于验证工具链。"
+        for encoding in ("cp1252", "ascii"):
+            with self.subTest(encoding=encoding):
+                env = {**os.environ, "PYTHONIOENCODING": encoding, "PYTHONUTF8": "0"}
+                result = subprocess.run([sys.executable, "-m", "paicli", "demo", "--json"], env=env, capture_output=True, timeout=20)
+                self.assertEqual(result.returncode, 0, result.stderr.decode("ascii", errors="backslashreplace"))
+                data = json.loads(result.stdout.decode("ascii"))
+                self.assertTrue(data["ok"])
+                self.assertEqual(data["agent"]["answer"], expected)
+                self.assertEqual(result.stderr, b"")
+
     def test_scripted_write_without_interactive_approval_is_denied(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

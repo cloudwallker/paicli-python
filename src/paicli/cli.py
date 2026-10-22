@@ -212,7 +212,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
         result = asyncio.run(dispatch(args))
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        # ASCII-safe JSON is portable through locale-encoded pipes. JSON parsers
+        # restore escaped Unicode exactly; no process-wide stream override is needed.
+        print(json.dumps(result, ensure_ascii=True, indent=2))
         if args.command == "doctor" and not all(result[stage]["ok"] for stage in ("dns", "tcp", "http")):
             return 1
         return 0
@@ -220,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"ok": False, "error": "Interrupted."}), file=sys.stderr)
         return 130
     except (PaiCLIError, ValueError) as exc:
-        print(json.dumps({"ok": False, "error": str(exc), "type": type(exc).__name__}, ensure_ascii=False), file=sys.stderr)
+        print(json.dumps({"ok": False, "error": str(exc), "type": type(exc).__name__}, ensure_ascii=True), file=sys.stderr)
         return 3 if isinstance(exc, BudgetExceeded) else 2
     except (OSError, sqlite3.Error):
         print(json.dumps({"ok": False, "error": "Local file or database operation failed."}), file=sys.stderr)

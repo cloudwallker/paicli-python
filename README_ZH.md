@@ -49,7 +49,7 @@ paicli audit --workspace examples/codebase
 
 先执行 `index`，再进行检索。索引采用重建方式；文件改变或删除后，搜索会过滤旧结果，重建后再使用新内容。Python 函数/类按 AST 边界切分，较长代码块继续按 100 行窗口切分；其他受支持的文本文件采用行窗口。这里是词法检索，不依赖 Embedding 模型。
 
-默认 provider 为 `scripted`，必须通过 `--script` 或计划任务的 `script` 提供回复序列。远程模型失败时不会自动降级成脚本模型。成功命令默认输出 JSON，也接受显式 `--json`。其他选项见 `paicli <命令> --help`。
+默认 provider 为 `scripted`，必须通过 `--script` 或计划任务的 `script` 提供回复序列。远程模型失败时不会自动降级成脚本模型。成功命令默认输出 JSON，也接受显式 `--json`。JSON 输出使用兼容 ASCII 的 Unicode 转义，避免依赖管道的系统编码；解析后还原原始中文等 Unicode 文本。其他选项见 `paicli <命令> --help`。
 
 ### 查看并批准一次写入
 
@@ -98,7 +98,7 @@ python -m unittest discover -s tests -v
 paicli demo --json
 ```
 
-**2026-10-22** 本地验证环境为 Windows / Python 3.12.14：**41 项测试通过，0 失败、0 跳过**。覆盖路径越界与链接、精确/拒绝/过期审批、模型异常和工具消息、上下文预算、过期索引、DAG 校验与并发取消、本地回环诊断和 API 请求协议。另已实跑安装后的 CLI 和上述示例命令。尚未验证真实远程模型效果和 Docker 构建。CI 配置覆盖 Ubuntu/Windows、Python 3.11/3.12；配置存在不等于远程构建已经通过。
+**2026-10-22 至 2026-10-23** 本地验证环境为 Windows / Python 3.12.14：**42 项测试通过，0 失败、0 跳过**，包括 `PYTHONIOENCODING=cp1252` 且关闭 UTF-8 模式的全量运行。覆盖路径越界与链接、精确/拒绝/过期审批、模型异常和工具消息、上下文预算、过期索引、DAG 校验与并发取消、本地回环诊断、API 请求协议，以及 cp1252/ASCII 输出编码下真实子进程的中文内容保真。另已实跑安装后的 CLI 和上述示例命令。尚未验证真实远程模型效果和 Docker 构建。CI 配置覆盖 Ubuntu/Windows、Python 3.11/3.12；配置存在不等于远程构建已经通过。
 
 `src/paicli/` 包含 CLI、Agent、工具、存储、检索、计划调度和 API 适配；`tests/` 使用标准库测试框架；`examples/` 提供可查看的源码样例与脚本回复。Dockerfile 供后续容器验证使用。
 
