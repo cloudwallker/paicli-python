@@ -26,7 +26,7 @@ MAX_CHUNKS = 10_000
 MAX_CONTENT_BYTES = 8 * 1024 * 1024
 MAX_VISIBLE_CHARS = 8_000
 COVERAGE_THRESHOLD = 0.6
-ALGORITHM_VERSION = "bilingual-concept-bm25-v3"
+ALGORITHM_VERSION = "bilingual-concept-bm25-v4"
 SHORT_QUERY_MAX_CONCEPTS = 3
 
 # This syntactic policy is fixed before held-out evaluation. It does not infer
@@ -101,6 +101,8 @@ _VOCABULARY = (
     ("syntax", ("语法", "抽象语法树"), ("syntax", "ast")),
     ("storage", ("存储", "持久化"), ("storage", "store", "persist", "persistence")),
     ("summary", ("摘要", "总结"), ("summary", "summarize", "summarization")),
+    ("excerpt", ("摘录", "节选"), ("excerpt",)),
+    ("version", ("版本", "版本号"), ("version",)),
     ("memory", ("内存", "记忆"), ("memory",)),
     ("read", ("读取", "读文件"), ("read", "reader")),
     ("write", ("写入", "写文件"), ("write", "writer")),

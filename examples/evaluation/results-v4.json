@@ -1,0 +1,700 @@
+{
+  "schema_version": 1,
+  "measured_on": "2026-10-23",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.14",
+    "unicode_version": "15.0.0"
+  },
+  "dataset": {
+    "path": "examples/evaluation/holdout-v4.json",
+    "annotation_audit_path": "examples/evaluation/holdout-v4-annotations.json",
+    "file_sha256": "1c88374db74f8a3b874dd8074ab0217e78238777b045b4463e6c8476c83067a3",
+    "annotation_audit_sha256": "62845469f8db77847c403a2ac36e3e2c7f44113841518507229cef84fa7fa146",
+    "total": 24,
+    "answerable": 16,
+    "unanswerable": 8,
+    "chinese": 12,
+    "english": 12,
+    "normalized_evaluator_dataset": {
+      "name": "paicli-independent-source-diagnostic-v4",
+      "version": 1,
+      "sha256": "aae950df848716849dde286c00829125cecadc375fbb2d2d0dd5af3ae8194daa"
+    },
+    "provenance": "Separate source-reading agent; same repository; no independent human or cross-project validation.",
+    "first_look": "Source/rules frozen before first evaluation. This dataset becomes development-visible after this run."
+  },
+  "freeze": {
+    "frozen_at_utc": "2026-10-23T11:28:34.082217+00:00",
+    "baseline_commit": "f1403fcc1cd65e4c175247d8f30815a996b2d4ab",
+    "main_base": "16280265c0b615204d4d05587b3a35807541833f",
+    "source_sha256": {
+      "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589",
+      "src/paicli/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+      "src/paicli/behavior.py": "f30c5f789af52f7b979eb18cf1386ea55c32257054bceb7a2d752df5818ad0a4",
+      "src/paicli/cli.py": "22b564c04d6c3857f87e0fd94b9ab5f9f03a9b720e7bb94bad2f7bf38977cfd8",
+      "src/paicli/codegraph.py": "eea06737c9ee3bbcc00911fbe4a90503f6168819366ef01d8468b710337dcca1",
+      "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+      "src/paicli/evaluation.py": "733be03dd685ce81ed074b8f806d88da972c8a2d746a1e8148fe25847cd58848",
+      "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+      "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+      "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+      "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+      "src/paicli/retrieval.py": "d8f65e7a5ccff10751f4bded7b4aeef72cc0dab145a0ef5cb73cd4ecbe6b4a2d",
+      "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+      "src/paicli/tools.py": "f96e9e73656d87da310245096a6f3128918b7d5408d2fce81b6977482c0fb71c",
+      "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529"
+    },
+    "v3_source_sha256": {
+      "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589",
+      "src/paicli/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+      "src/paicli/behavior.py": "7ad2c7ca4c3cecf735a49a990c3376d009013ce867f3146e889f54ea2422ba1a",
+      "src/paicli/cli.py": "22b564c04d6c3857f87e0fd94b9ab5f9f03a9b720e7bb94bad2f7bf38977cfd8",
+      "src/paicli/codegraph.py": "eea06737c9ee3bbcc00911fbe4a90503f6168819366ef01d8468b710337dcca1",
+      "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+      "src/paicli/evaluation.py": "733be03dd685ce81ed074b8f806d88da972c8a2d746a1e8148fe25847cd58848",
+      "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+      "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+      "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+      "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+      "src/paicli/retrieval.py": "f183a20ec4058b213a9f8c796b2676988320db598eb0b2f5a45083be181870ea",
+      "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+      "src/paicli/tools.py": "f96e9e73656d87da310245096a6f3128918b7d5408d2fce81b6977482c0fb71c",
+      "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529"
+    },
+    "dataset_file_sha256": "1c88374db74f8a3b874dd8074ab0217e78238777b045b4463e6c8476c83067a3",
+    "annotation_file_sha256": "62845469f8db77847c403a2ac36e3e2c7f44113841518507229cef84fa7fa146",
+    "targets": {
+      "answerable_false_abstention_rate_max": 0.25,
+      "false_retrieval_rate_max": 0.25,
+      "gated_recall_ratio_to_v3_min": 0.8
+    },
+    "provenance": "Separate source-reading agent; same repository; no independent human or cross-project validation."
+  },
+  "retrieval_profiles": {
+    "v3": {
+      "algorithm_version": "bilingual-concept-bm25-v3",
+      "vocabulary_hash": "91c57416f4d34913e13a5ffc19bf6d10889dcf748066020dc29b2425e3a1df20",
+      "stopwords_hash": "432be9a146958fdfe752937753a768cb14ec9f9c2eae075e51792ef448fa3447",
+      "unicode_normalization": "NFC+casefold; preserve letters,numbers,marks; split Han runs",
+      "unicode_version": "15.0.0",
+      "threshold": 0.6,
+      "ranking": "coverage-desc,bm25-max-per-concept-desc,path,start_line,end_line,symbol",
+      "gate": "known-concept-and-anchor-coverage-at-least-threshold-and-all-anchors-in-visible-window-and-all-required-behaviors-in-one-visible-execution-scope",
+      "anchor_rules": {
+        "short_query": "at most 3 distinct non-stopword concepts; every unknown literal is required",
+        "explicit": "backtick identifiers; underscore or mixed-case identifiers; uppercase acronyms; unknown titlecase words except the first run; non-Han letter runs in mixed-Han queries",
+        "matching": "NFC+casefold exact identifier or contiguous components within one identifier; Han literal substring; no cross-identifier assembly or inflection",
+        "natural_language": "other unknown words are soft ranking evidence; coverage denominator is known concepts plus anchors",
+        "empty_gate": "no known concept and no anchor means insufficient evidence",
+        "stopword_precedence": "explicit anchors are recognized before stopword filtering",
+        "anchor_only_ranking": "anchors may create candidates; if no concept matches, sum binary-frequency BM25 per matched anchor"
+      },
+      "behavior_policy": {
+        "version": "python-scope-identifiers-v4",
+        "max_ast_nodes": 100000,
+        "required": "all recognized specific behavior concepts in one candidate and one execution scope",
+        "evidence": "non-stub function name, runtime Name.Load, loaded attribute, call target, call keyword, daemon attribute assigned literal True; visible complete source lines only",
+        "excluded": "comments, strings, imports, class names, parameters, annotations and type aliases, TYPE_CHECKING branches, placeholder functions including excluded-only or statically nonrunning bodies; daemon keyword requires literal True",
+        "scope": "module, class body, function, async function, lambda and each comprehension are separate; comprehension first iterable stays in enclosing scope, body/ifs/later iterables in comprehension scope; no cross-scope assembly",
+        "selection": "behavior queries gate the complete ranked pool before limiting hits; raw candidates retain top-k ranking; ordinary queries retain the v2 pre-gate limit",
+        "conditions": "preserve evaluated Boolean test prefixes even when the result is constant; omit only statically short-circuited operands and nonselected known If branches",
+        "failure": "unsupported language, invalid Python, node budget or analysis failure supplies no behavior evidence; ordinary retrieval remains available",
+        "meaning": "syntactic lexical evidence only; it does not establish runtime behavior or correctness"
+      },
+      "behavior_vocabulary_hash": "6f091f653e921dc602bc5e19731f34b25973f44e8d07464455477970338d2139",
+      "short_query_max_concepts": 3,
+      "bm25_k1": 1.2,
+      "bm25_b": 0.75,
+      "max_chunks": 10000,
+      "max_content_bytes": 8388608,
+      "max_source_bytes": 524288,
+      "max_visible_chars": 8000,
+      "line_boundaries": "CRLF,CR,LF; oversized single lines omitted and counted",
+      "profile_hash": "b9dc642bbafb38225ce69eddafd797b9f868f2d402907cbb518e6bf0b2597979",
+      "snapshot_chunks": 98,
+      "snapshot_content_bytes": 71315,
+      "snapshot_source_bytes": 44736,
+      "snapshot_windows": 98,
+      "excluded_chunks": 0,
+      "omitted_oversize_lines": 0,
+      "behavior_analysis_statuses": {
+        "ok": 9
+      },
+      "snapshot_hash": "be00db38b700c2e8cf44fb66bb947ddb84e6f4554027b7527e73713a272c3a50",
+      "unavailable_files": 0
+    },
+    "v4": {
+      "algorithm_version": "bilingual-concept-bm25-v4",
+      "vocabulary_hash": "36a799f36a8401ffb3751d9cafcc7aac40cb7137bd31a434d45b43efd6c69aae",
+      "stopwords_hash": "432be9a146958fdfe752937753a768cb14ec9f9c2eae075e51792ef448fa3447",
+      "unicode_normalization": "NFC+casefold; preserve letters,numbers,marks; split Han runs",
+      "unicode_version": "15.0.0",
+      "threshold": 0.6,
+      "ranking": "coverage-desc,bm25-max-per-concept-desc,path,start_line,end_line,symbol",
+      "gate": "known-concept-and-anchor-coverage-at-least-threshold-and-all-anchors-in-visible-window-and-all-required-behaviors-in-one-visible-execution-scope",
+      "anchor_rules": {
+        "short_query": "at most 3 distinct non-stopword concepts; every unknown literal is required",
+        "explicit": "backtick identifiers; underscore or mixed-case identifiers; uppercase acronyms; unknown titlecase words except the first run; non-Han letter runs in mixed-Han queries",
+        "matching": "NFC+casefold exact identifier or contiguous components within one identifier; Han literal substring; no cross-identifier assembly or inflection",
+        "natural_language": "other unknown words are soft ranking evidence; coverage denominator is known concepts plus anchors",
+        "empty_gate": "no known concept and no anchor means insufficient evidence",
+        "stopword_precedence": "explicit anchors are recognized before stopword filtering",
+        "anchor_only_ranking": "anchors may create candidates; if no concept matches, sum binary-frequency BM25 per matched anchor"
+      },
+      "behavior_policy": {
+        "version": "python-scope-identifiers-v4",
+        "max_ast_nodes": 100000,
+        "required": "all recognized specific behavior concepts in one candidate and one execution scope",
+        "evidence": "non-stub function name, runtime Name.Load, loaded attribute, call target, call keyword, daemon attribute assigned literal True; visible complete source lines only",
+        "excluded": "comments, strings, imports, class names, parameters, annotations and type aliases, TYPE_CHECKING branches, placeholder functions including excluded-only or statically nonrunning bodies; daemon keyword requires literal True",
+        "scope": "module, class body, function, async function, lambda and each comprehension are separate; comprehension first iterable stays in enclosing scope, body/ifs/later iterables in comprehension scope; no cross-scope assembly",
+        "selection": "behavior queries gate the complete ranked pool before limiting hits; raw candidates retain top-k ranking; ordinary queries retain the v2 pre-gate limit",
+        "conditions": "preserve evaluated Boolean test prefixes even when the result is constant; omit only statically short-circuited operands and nonselected known If branches",
+        "failure": "unsupported language, invalid Python, node budget or analysis failure supplies no behavior evidence; ordinary retrieval remains available",
+        "meaning": "syntactic lexical evidence only; it does not establish runtime behavior or correctness"
+      },
+      "behavior_vocabulary_hash": "72b3d1b275d894bd3c4f9efb7e277c6045e2224502c13e5fb75c7b17de9ee471",
+      "short_query_max_concepts": 3,
+      "bm25_k1": 1.2,
+      "bm25_b": 0.75,
+      "max_chunks": 10000,
+      "max_content_bytes": 8388608,
+      "max_source_bytes": 524288,
+      "max_visible_chars": 8000,
+      "line_boundaries": "CRLF,CR,LF; oversized single lines omitted and counted",
+      "profile_hash": "b17526523564475fc2ccbe44bd5b4339224a2045741440672854c71fd96f3873",
+      "snapshot_chunks": 98,
+      "snapshot_content_bytes": 71315,
+      "snapshot_source_bytes": 44736,
+      "snapshot_windows": 98,
+      "excluded_chunks": 0,
+      "omitted_oversize_lines": 0,
+      "behavior_analysis_statuses": {
+        "ok": 9
+      },
+      "snapshot_hash": "be00db38b700c2e8cf44fb66bb947ddb84e6f4554027b7527e73713a272c3a50",
+      "unavailable_files": 0
+    }
+  },
+  "development_regressions": {
+    "cases": {
+      "v3": {
+        "recall_at_k": 0.8076923076923077,
+        "mrr_at_k": 0.7660256410256411,
+        "answerable_accepted_count": 24,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.07692307692307693,
+        "false_retrieval_count": 0,
+        "false_retrieval_rate": 0.0
+      },
+      "v4": {
+        "recall_at_k": 0.8076923076923077,
+        "mrr_at_k": 0.7660256410256411,
+        "answerable_accepted_count": 24,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.07692307692307693,
+        "false_retrieval_count": 0,
+        "false_retrieval_rate": 0.0
+      }
+    },
+    "holdout": {
+      "v3": {
+        "recall_at_k": 0.7708333333333334,
+        "mrr_at_k": 0.84375,
+        "answerable_accepted_count": 14,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.125,
+        "false_retrieval_count": 1,
+        "false_retrieval_rate": 0.125
+      },
+      "v4": {
+        "recall_at_k": 0.7708333333333334,
+        "mrr_at_k": 0.84375,
+        "answerable_accepted_count": 14,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.125,
+        "false_retrieval_count": 1,
+        "false_retrieval_rate": 0.125
+      }
+    },
+    "holdout-v2": {
+      "v3": {
+        "recall_at_k": 0.75,
+        "mrr_at_k": 0.7291666666666666,
+        "answerable_accepted_count": 14,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.125,
+        "false_retrieval_count": 0,
+        "false_retrieval_rate": 0.0
+      },
+      "v4": {
+        "recall_at_k": 0.75,
+        "mrr_at_k": 0.7708333333333334,
+        "answerable_accepted_count": 14,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.125,
+        "false_retrieval_count": 0,
+        "false_retrieval_rate": 0.0
+      }
+    },
+    "holdout-v3": {
+      "v3": {
+        "recall_at_k": 0.675,
+        "mrr_at_k": 0.6666666666666667,
+        "answerable_accepted_count": 14,
+        "answerable_abstained_count": 6,
+        "answerable_false_abstention_rate": 0.3,
+        "false_retrieval_count": 3,
+        "false_retrieval_rate": 0.25
+      },
+      "v4": {
+        "recall_at_k": 0.775,
+        "mrr_at_k": 0.7666666666666667,
+        "answerable_accepted_count": 16,
+        "answerable_abstained_count": 4,
+        "answerable_false_abstention_rate": 0.2,
+        "false_retrieval_count": 0,
+        "false_retrieval_rate": 0.0
+      }
+    }
+  },
+  "development_target_checks": {
+    "false_abstention_at_most_25_percent": true,
+    "negative_false_retrieval_below_3": true,
+    "recall_at_least_0_675": true,
+    "prior_holdout_v2_negative_zero": true,
+    "prior_holdout_v2_accepted_at_least_14": true,
+    "prior_holdout_v2_recall_at_least_0_75": true
+  },
+  "first_look_methods": {
+    "v3": {
+      "bm25": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.61875,
+        "mrr_at_k": 0.7083333333333334,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 16,
+        "empty_result_count": 1,
+        "false_retrieval_count": 7,
+        "empty_result_rate": 0.125,
+        "false_retrieval_rate": 0.875,
+        "answerable_accepted_count": 13,
+        "answerable_abstained_count": 3,
+        "unanswerable_accepted_count": 7,
+        "unanswerable_abstained_count": 1,
+        "accepted_answerable_recall": 0.7615384615384616,
+        "answerable_false_abstention_rate": 0.1875,
+        "abstention_count": 4,
+        "abstention_rate": 0.16666666666666666
+      },
+      "graph_expand": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.6625,
+        "mrr_at_k": 0.703125,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 18,
+        "empty_result_count": 1,
+        "false_retrieval_count": 7,
+        "empty_result_rate": 0.125,
+        "false_retrieval_rate": 0.875,
+        "answerable_accepted_count": 13,
+        "answerable_abstained_count": 3,
+        "unanswerable_accepted_count": 7,
+        "unanswerable_abstained_count": 1,
+        "accepted_answerable_recall": 0.8153846153846154,
+        "answerable_false_abstention_rate": 0.1875,
+        "abstention_count": 4,
+        "abstention_rate": 0.16666666666666666
+      },
+      "code_aware": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.8416666666666667,
+        "mrr_at_k": 0.8489583333333334,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 22,
+        "empty_result_count": 0,
+        "false_retrieval_count": 8,
+        "empty_result_rate": 0.0,
+        "false_retrieval_rate": 1.0,
+        "answerable_accepted_count": 16,
+        "answerable_abstained_count": 0,
+        "unanswerable_accepted_count": 8,
+        "unanswerable_abstained_count": 0,
+        "accepted_answerable_recall": 0.8416666666666667,
+        "answerable_false_abstention_rate": 0.0,
+        "abstention_count": 0,
+        "abstention_rate": 0.0
+      },
+      "code_aware_gated": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.5,
+        "mrr_at_k": 0.5625,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 11,
+        "empty_result_count": 4,
+        "false_retrieval_count": 4,
+        "empty_result_rate": 0.5,
+        "false_retrieval_rate": 0.5,
+        "answerable_accepted_count": 11,
+        "answerable_abstained_count": 5,
+        "unanswerable_accepted_count": 4,
+        "unanswerable_abstained_count": 4,
+        "accepted_answerable_recall": 0.7272727272727273,
+        "answerable_false_abstention_rate": 0.3125,
+        "abstention_count": 9,
+        "abstention_rate": 0.375
+      }
+    },
+    "v4": {
+      "bm25": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.61875,
+        "mrr_at_k": 0.7083333333333334,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 16,
+        "empty_result_count": 1,
+        "false_retrieval_count": 7,
+        "empty_result_rate": 0.125,
+        "false_retrieval_rate": 0.875,
+        "answerable_accepted_count": 13,
+        "answerable_abstained_count": 3,
+        "unanswerable_accepted_count": 7,
+        "unanswerable_abstained_count": 1,
+        "accepted_answerable_recall": 0.7615384615384616,
+        "answerable_false_abstention_rate": 0.1875,
+        "abstention_count": 4,
+        "abstention_rate": 0.16666666666666666
+      },
+      "graph_expand": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.6625,
+        "mrr_at_k": 0.703125,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 18,
+        "empty_result_count": 1,
+        "false_retrieval_count": 7,
+        "empty_result_rate": 0.125,
+        "false_retrieval_rate": 0.875,
+        "answerable_accepted_count": 13,
+        "answerable_abstained_count": 3,
+        "unanswerable_accepted_count": 7,
+        "unanswerable_abstained_count": 1,
+        "accepted_answerable_recall": 0.8153846153846154,
+        "answerable_false_abstention_rate": 0.1875,
+        "abstention_count": 4,
+        "abstention_rate": 0.16666666666666666
+      },
+      "code_aware": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.8416666666666667,
+        "mrr_at_k": 0.8489583333333334,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 22,
+        "empty_result_count": 0,
+        "false_retrieval_count": 8,
+        "empty_result_rate": 0.0,
+        "false_retrieval_rate": 1.0,
+        "answerable_accepted_count": 16,
+        "answerable_abstained_count": 0,
+        "unanswerable_accepted_count": 8,
+        "unanswerable_abstained_count": 0,
+        "accepted_answerable_recall": 0.8416666666666667,
+        "answerable_false_abstention_rate": 0.0,
+        "abstention_count": 0,
+        "abstention_rate": 0.0
+      },
+      "code_aware_gated": {
+        "total_cases": 24,
+        "answerable_cases": 16,
+        "unanswerable_cases": 8,
+        "recall_at_k": 0.5,
+        "mrr_at_k": 0.5625,
+        "relevant_span_count": 28,
+        "matched_relevant_spans": 11,
+        "empty_result_count": 4,
+        "false_retrieval_count": 4,
+        "empty_result_rate": 0.5,
+        "false_retrieval_rate": 0.5,
+        "answerable_accepted_count": 11,
+        "answerable_abstained_count": 5,
+        "unanswerable_accepted_count": 4,
+        "unanswerable_abstained_count": 4,
+        "accepted_answerable_recall": 0.7272727272727273,
+        "answerable_false_abstention_rate": 0.3125,
+        "abstention_count": 9,
+        "abstention_rate": 0.375
+      }
+    }
+  },
+  "first_look_target_checks": {
+    "answerable_false_abstention_at_most_25_percent": false,
+    "negative_false_retrieval_at_most_25_percent": false,
+    "gated_recall_retention_at_least_80_percent": true
+  },
+  "first_look_gated_recall_ratio_to_v3": 1.0,
+  "new_concept_coverage": {
+    "ordinary": {
+      "total": 1,
+      "answerable": 0,
+      "unanswerable": 1,
+      "cases": [
+        {
+          "id": "v4-016",
+          "answerable": false,
+          "concepts": [
+            "version"
+          ]
+        }
+      ]
+    },
+    "behavior": {
+      "total": 0,
+      "answerable": 0,
+      "unanswerable": 0,
+      "cases": []
+    }
+  },
+  "first_look_gated_cases": [
+    {
+      "id": "v4-001",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 2,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 0.5,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-002",
+      "answerable": true,
+      "accepted": false,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 0,
+      "recall_at_k": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "id": "v4-003",
+      "answerable": false,
+      "accepted": false,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-004",
+      "answerable": true,
+      "accepted": false,
+      "relevant_span_count": 2,
+      "matched_relevant_spans": 0,
+      "recall_at_k": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "id": "v4-005",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 2,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 0.5,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-006",
+      "answerable": false,
+      "accepted": true,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-007",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 0.5
+    },
+    {
+      "id": "v4-008",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-009",
+      "answerable": false,
+      "accepted": false,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-010",
+      "answerable": true,
+      "accepted": false,
+      "relevant_span_count": 3,
+      "matched_relevant_spans": 0,
+      "recall_at_k": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "id": "v4-011",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-012",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 2,
+      "matched_relevant_spans": 2,
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-013",
+      "answerable": false,
+      "accepted": false,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-014",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 2,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 0.5,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-015",
+      "answerable": true,
+      "accepted": false,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 0,
+      "recall_at_k": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "id": "v4-016",
+      "answerable": false,
+      "accepted": true,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-017",
+      "answerable": true,
+      "accepted": false,
+      "relevant_span_count": 5,
+      "matched_relevant_spans": 0,
+      "recall_at_k": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "id": "v4-018",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-019",
+      "answerable": false,
+      "accepted": true,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-020",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 2,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 0.5,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "v4-021",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 1,
+      "recall_at_k": 1.0,
+      "reciprocal_rank": 0.5
+    },
+    {
+      "id": "v4-022",
+      "answerable": false,
+      "accepted": true,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    },
+    {
+      "id": "v4-023",
+      "answerable": true,
+      "accepted": true,
+      "relevant_span_count": 1,
+      "matched_relevant_spans": 0,
+      "recall_at_k": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "id": "v4-024",
+      "answerable": false,
+      "accepted": false,
+      "relevant_span_count": 0,
+      "matched_relevant_spans": 0,
+      "recall_at_k": null,
+      "reciprocal_rank": null
+    }
+  ],
+  "limits": [
+    "Development targets passed; new first-look diagnostic targets did not all pass. Do not infer reliable abstention.",
+    "Same-repository AI source annotations; no independent human or cross-project validation.",
+    "The fresh set has limited coverage of this vocabulary change; executable paired tests provide separate positive behavior evidence.",
+    "All answerable cases are included in recall/MRR, with abstained cases counted as zero.",
+    "AST identifier evidence is a lexical heuristic, not proof of runtime semantics; aliases and cross-scope implementations may be rejected.",
+    "No generated answer quality, external provider benchmark or hallucination rate is measured."
+  ]
+}
