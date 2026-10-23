@@ -1,0 +1,248 @@
+{
+  "name": "paicli-source-blind-v3-20261023",
+  "version": 1,
+  "annotation_note": "AI 代理仅依据 source_files 所列 9 个源码文件进行独立于检索实现、旧评测与报告的源码标注；未运行任何检索或评测。该集合是同项目代理标注的保留集，不构成人类独立标注、外部验证或跨项目泛化证据。正例为限定语料可直接支持的问题，负例为与真实功能有词面邻近性但所需机制或配置未在限定语料定义的问题。行号从 1 开始，首尾均包含。",
+  "source_files": {
+    "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+    "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+    "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+    "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+    "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+    "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+    "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+    "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+    "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589"
+  },
+  "cases": [
+    {
+      "id": "v3-001",
+      "query": "路径组件以空格或句点结尾时为什么会被拒绝？",
+      "answerable": true,
+      "category": "workspace-path-policy",
+      "relevant_spans": [{"path": "src/paicli/workspace.py", "start_line": 48, "end_line": 55}]
+    },
+    {
+      "id": "v3-002",
+      "query": "自动清理旧会话的保留天数在哪配置？",
+      "answerable": false,
+      "category": "unanswerable-session-retention",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-003",
+      "query": "How does state_file guard SQLite journal, WAL and SHM paths against link aliases?",
+      "answerable": true,
+      "category": "workspace-state-safety",
+      "relevant_spans": [{"path": "src/paicli/workspace.py", "start_line": 94, "end_line": 104}]
+    },
+    {
+      "id": "v3-004",
+      "query": "目录枚举达到上限后怎么表示还有文件未返回，结果顺序是否稳定？",
+      "answerable": true,
+      "category": "workspace-file-enumeration",
+      "relevant_spans": [{"path": "src/paicli/workspace.py", "start_line": 71, "end_line": 92}]
+    },
+    {
+      "id": "v3-005",
+      "query": "Which initial retry delay and jitter formula does OpenAIModel use after HTTP 429, and where are they configured?",
+      "answerable": false,
+      "category": "unanswerable-model-backoff",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-006",
+      "query": "保存聊天消息前怎样校验 session ID，中文消息是否以 Unicode 原文存进 SQLite？",
+      "answerable": true,
+      "category": "storage-session-validation",
+      "relevant_spans": [{"path": "src/paicli/storage.py", "start_line": 39, "end_line": 43}]
+    },
+    {
+      "id": "v3-007",
+      "query": "When old chat turns are discarded, how many dropped user excerpts are kept and how long is each excerpt?",
+      "answerable": true,
+      "category": "context-history-excerpts",
+      "relevant_spans": [{"path": "src/paicli/storage.py", "start_line": 79, "end_line": 93}]
+    },
+    {
+      "id": "v3-008",
+      "query": "工作区文件访问策略要给每个操作系统用户单独配置读写 ACL，配置文件格式和规则优先级是什么？",
+      "answerable": false,
+      "category": "unanswerable-workspace-acl",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-009",
+      "query": "上次中断留下只有工具调用、没有结果的会话，再次运行 Agent 时会怎样补齐历史，是否会直接重试那个调用？",
+      "answerable": true,
+      "category": "agent-interrupted-history",
+      "relevant_spans": [{"path": "src/paicli/agent.py", "start_line": 82, "end_line": 103}]
+    },
+    {
+      "id": "v3-010",
+      "query": "How are repeated tool call IDs and duplicate JSON argument keys rejected by validate_reply?",
+      "answerable": true,
+      "category": "agent-reply-validation",
+      "relevant_spans": [
+        {"path": "src/paicli/agent.py", "start_line": 34, "end_line": 40},
+        {"path": "src/paicli/agent.py", "start_line": 43, "end_line": 66}
+      ]
+    },
+    {
+      "id": "v3-011",
+      "query": "Where is the FTS synonym dictionary loaded, and what is the schema for mapping query terms to synonyms?",
+      "answerable": false,
+      "category": "unanswerable-query-synonyms",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-012",
+      "query": "工具抛出 OSError 时，Agent 给模型的工具结果包含哪些错误字段，trace 又记录什么？",
+      "answerable": true,
+      "category": "agent-tool-errors",
+      "relevant_spans": [{"path": "src/paicli/agent.py", "start_line": 119, "end_line": 134}]
+    },
+    {
+      "id": "v3-013",
+      "query": "PlanRunner 失败后从磁盘检查点续跑，检查点文件的路径和序列化格式是什么？",
+      "answerable": false,
+      "category": "unanswerable-plan-checkpoints",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-014",
+      "query": "任务依赖里填了不存在的任务或形成环，validate_plan 分别在何处拒绝？",
+      "answerable": true,
+      "category": "plan-dag-validation",
+      "relevant_spans": [{"path": "src/paicli/plan.py", "start_line": 31, "end_line": 39}]
+    },
+    {
+      "id": "v3-015",
+      "query": "When a PlanRunner worker raises, how are outstanding jobs cleaned up and which plan-level error is exposed?",
+      "answerable": true,
+      "category": "plan-failure-cleanup",
+      "relevant_spans": [{"path": "src/paicli/plan.py", "start_line": 70, "end_line": 83}]
+    },
+    {
+      "id": "v3-016",
+      "query": "Agent 对失败工具按错误类型配置自动补偿事务的语法是什么？",
+      "answerable": false,
+      "category": "unanswerable-tool-compensation",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-017",
+      "query": "chunks_for 处理带装饰器且超过一百行的 Python 定义时，代码块的起止行怎么计算？",
+      "answerable": true,
+      "category": "index-ast-chunk-boundaries",
+      "relevant_spans": [{"path": "src/paicli/index.py", "start_line": 35, "end_line": 47}]
+    },
+    {
+      "id": "v3-018",
+      "query": "What makes CodeIndex.build skip a text file, and does a rebuild append to or replace the stored chunks?",
+      "answerable": true,
+      "category": "index-build-replacement",
+      "relevant_spans": [{"path": "src/paicli/index.py", "start_line": 75, "end_line": 98}]
+    },
+    {
+      "id": "v3-019",
+      "query": "代码索引文件监听器的防抖延迟在哪里设置？",
+      "answerable": false,
+      "category": "unanswerable-index-watcher",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-020",
+      "query": "索引建好后源码被修改，搜索为什么不会直接返回旧块？",
+      "answerable": true,
+      "category": "index-stale-source-filter",
+      "relevant_spans": [{"path": "src/paicli/index.py", "start_line": 119, "end_line": 130}]
+    },
+    {
+      "id": "v3-021",
+      "query": "Which workflow cancellation endpoint and idempotency-key format does PlatformClient use to cancel a running run?",
+      "answerable": false,
+      "category": "unanswerable-platform-cancel",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-022",
+      "query": "模型端点为什么不能用远程 HTTP 地址，哪些本机地址可以例外，末尾的斜杠如何处理？",
+      "answerable": true,
+      "category": "model-endpoint-policy",
+      "relevant_spans": [{"path": "src/paicli/models.py", "start_line": 13, "end_line": 23}]
+    },
+    {
+      "id": "v3-023",
+      "query": "Does ScriptedModel share the caller's mutable response list or input messages, and what happens after its responses run out?",
+      "answerable": true,
+      "category": "scripted-model-isolation",
+      "relevant_spans": [{"path": "src/paicli/models.py", "start_line": 26, "end_line": 37}]
+    },
+    {
+      "id": "v3-024",
+      "query": "PlatformClient 的 OAuth refresh token 在哪里缓存，令牌即将过期时提前多久自动轮换？",
+      "answerable": false,
+      "category": "unanswerable-platform-token-refresh",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-025",
+      "query": "事件历史最后一条只有结尾换行、缺少空行分隔时，为什么整次回放会失败？",
+      "answerable": true,
+      "category": "platform-sse-incomplete-record",
+      "relevant_spans": [{"path": "src/paicli/platform.py", "start_line": 108, "end_line": 129}]
+    },
+    {
+      "id": "v3-026",
+      "query": "Which quota consistency checks does PlatformClient.quota apply beyond the JSON object shape?",
+      "answerable": true,
+      "category": "platform-quota-validation",
+      "relevant_spans": [
+        {"path": "src/paicli/platform.py", "start_line": 31, "end_line": 32},
+        {"path": "src/paicli/platform.py", "start_line": 190, "end_line": 196}
+      ]
+    },
+    {
+      "id": "v3-027",
+      "query": "What default tokenizer name and per-model token-price table does compact_context use to calculate request cost?",
+      "answerable": false,
+      "category": "unanswerable-context-token-cost",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-028",
+      "query": "doctor 的 DNS 解析失败时，还会继续测 TCP 和 HTTP 吗，结果怎样写？",
+      "answerable": true,
+      "category": "platform-doctor-stage-skip",
+      "relevant_spans": [{"path": "src/paicli/platform.py", "start_line": 253, "end_line": 261}]
+    },
+    {
+      "id": "v3-029",
+      "query": "doctor 输出 TLS 证书颁发者和到期日时，对应的 JSON 字段名是什么？",
+      "answerable": false,
+      "category": "unanswerable-doctor-certificate-report",
+      "relevant_spans": []
+    },
+    {
+      "id": "v3-030",
+      "query": "ApprovalDenied 是否也属于 PaiCLIError，异常继承层次如何连接？",
+      "answerable": true,
+      "category": "error-inheritance",
+      "relevant_spans": [{"path": "src/paicli/errors.py", "start_line": 4, "end_line": 13}]
+    },
+    {
+      "id": "v3-031",
+      "query": "What version string is exported directly by the paicli package?",
+      "answerable": true,
+      "category": "package-version",
+      "relevant_spans": [{"path": "src/paicli/__init__.py", "start_line": 1, "end_line": 3}]
+    },
+    {
+      "id": "v3-032",
+      "query": "ApprovalDenied 对应的 CLI 退出码和机器可读 JSON 错误码映射是多少？",
+      "answerable": false,
+      "category": "unanswerable-cli-error-mapping",
+      "relevant_spans": []
+    }
+  ]
+}
