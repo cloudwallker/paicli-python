@@ -4,3 +4,5 @@
 *.md text eol=lf
 *.yml text eol=lf
 *.png binary
+# Keep frozen evaluation data bytes stable across Windows and Unix checkouts.
+*.json -text whitespace=cr-at-eol

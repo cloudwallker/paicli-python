@@ -1,0 +1,302 @@
+{
+  "name": "paicli-third-round-independent-blind-v2-20261023",
+  "version": 1,
+  "annotation_note": "独立标注代理仅依据指定的 9 个稳定源码文件重新出题，未查看检索实现、旧数据集或旧报告，未运行检索；在实现冻结前不向实现方披露题目。此为同项目的独立 LLM 源码标注，不是人类标注或跨项目评测。不可答表示所问能力在本次限定源码证据中没有实现依据，不将相邻实现误标为充分证据。",
+  "source_files": {
+    "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+    "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+    "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+    "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+    "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+    "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+    "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+    "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+    "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589"
+  },
+  "cases": [
+    {
+      "id": "blind-v2-01",
+      "query": "路径里写 .. 会怎样？",
+      "answerable": true,
+      "category": "workspace_policy",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 39,
+          "end_line": 44
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-02",
+      "query": "工作区文件列表会进入符号链接目录吗？",
+      "answerable": true,
+      "category": "workspace_enumeration",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 57,
+          "end_line": 62
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 71,
+          "end_line": 82
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-03",
+      "query": "Workspace.state_file() 对数据库旁边的 -wal 和 -shm 文件有什么保护？",
+      "answerable": true,
+      "category": "storage_path_policy",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 94,
+          "end_line": 104
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-04",
+      "query": "会话列表按什么排序？",
+      "answerable": true,
+      "category": "session_storage",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 49,
+          "end_line": 51
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-05",
+      "query": "compact_context 删旧轮次后，留下的历史摘录从哪些消息取、取多长？",
+      "answerable": true,
+      "category": "context_compaction",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 81,
+          "end_line": 90
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-06",
+      "query": "validate_reply 如何阻止参数 JSON 里的重复键？",
+      "answerable": true,
+      "category": "model_reply_validation",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 34,
+          "end_line": 40
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 57,
+          "end_line": 64
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-07",
+      "query": "工具调用遇到文件系统异常，Agent 会回传什么？",
+      "answerable": true,
+      "category": "agent_error_handling",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 123,
+          "end_line": 134
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-08",
+      "query": "任务依赖有环怎么办？",
+      "answerable": true,
+      "category": "plan_validation",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 31,
+          "end_line": 39
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-09",
+      "query": "PlanRunner 什么时候把依赖的结果交给下一个任务？",
+      "answerable": true,
+      "category": "plan_scheduling",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 59,
+          "end_line": 66
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-10",
+      "query": "Python 函数上面的装饰器会被算进代码块吗？",
+      "answerable": true,
+      "category": "code_chunking",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 35,
+          "end_line": 47
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-11",
+      "query": "源码改了但没重建索引时，CodeIndex.search 如何处理旧命中？",
+      "answerable": true,
+      "category": "index_freshness",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 121,
+          "end_line": 130
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-12",
+      "query": "模型端点用 http 时，哪些主机能通过 validate_url？",
+      "answerable": true,
+      "category": "endpoint_validation",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 13,
+          "end_line": 23
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-13",
+      "query": "What happens when a ScriptedModel runs out of replies?",
+      "answerable": true,
+      "category": "offline_model",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 33,
+          "end_line": 37
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-14",
+      "query": "Which fields must a quota response contain, and how are they checked?",
+      "answerable": true,
+      "category": "platform_schema_validation",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 31,
+          "end_line": 32
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 190,
+          "end_line": 196
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-15",
+      "query": "How does the events parser react to an event id that goes backwards?",
+      "answerable": true,
+      "category": "event_order_validation",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 72,
+          "end_line": 73
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 90,
+          "end_line": 106
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-16",
+      "query": "If DNS lookup fails, does doctor still try TCP and HTTP?",
+      "answerable": true,
+      "category": "network_diagnostics",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 253,
+          "end_line": 261
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-17",
+      "query": "数据库忙时的指数退避参数在哪设？",
+      "answerable": false,
+      "category": "absent_database_backoff",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-18",
+      "query": "计划执行失败后，从磁盘上的检查点续跑是怎么做的？",
+      "answerable": false,
+      "category": "absent_plan_checkpoint",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-19",
+      "query": "怎样让两个任务争抢同一资源时按优先级调度？",
+      "answerable": false,
+      "category": "absent_resource_priority",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-20",
+      "query": "如何把历史对话中每条消息的过期时间设成七天并自动清理？",
+      "answerable": false,
+      "category": "absent_message_retention",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-21",
+      "query": "Where is cancellation of a remote run implemented in PlatformClient?",
+      "answerable": false,
+      "category": "absent_remote_cancellation",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-22",
+      "query": "How does OpenAIModel validate a server certificate against a configured SHA-256 pin?",
+      "answerable": false,
+      "category": "absent_certificate_pinning",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-23",
+      "query": "how are file changes watched so the index updates in the background?",
+      "answerable": false,
+      "category": "absent_background_indexing",
+      "relevant_spans": []
+    },
+    {
+      "id": "blind-v2-24",
+      "query": "how are token costs aggregated into a per-session spending cap?",
+      "answerable": false,
+      "category": "absent_spending_budget",
+      "relevant_spans": []
+    }
+  ]
+}

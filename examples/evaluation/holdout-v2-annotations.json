@@ -1,0 +1,706 @@
+{
+  "dataset_name": "paicli-third-round-independent-blind-v2-20261023",
+  "version": 1,
+  "created_date": "2026-10-23",
+  "source_root": "forgithub/paicli-python",
+  "source_files": {
+    "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+    "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+    "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+    "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+    "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+    "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+    "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+    "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+    "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589"
+  },
+  "source_line_counts": {
+    "src/paicli/workspace.py": 104,
+    "src/paicli/storage.py": 93,
+    "src/paicli/agent.py": 137,
+    "src/paicli/plan.py": 83,
+    "src/paicli/index.py": 133,
+    "src/paicli/models.py": 81,
+    "src/paicli/platform.py": 275,
+    "src/paicli/errors.py": 29,
+    "src/paicli/__init__.py": 3
+  },
+  "annotation_method": "independent_llm_source_review",
+  "human_annotated": false,
+  "cross_project_evaluation": false,
+  "implementation_isolation": {
+    "allowed_source_files_only": true,
+    "retrieval_py_read": false,
+    "evaluation_py_read": false,
+    "tools_py_read": false,
+    "previous_datasets_or_reports_read": false,
+    "other_agents_implementation_messages_read": false,
+    "retrieval_executed": false,
+    "source_modified": false,
+    "git_operations_performed": false,
+    "queries_disclosed_before_implementation_freeze": false
+  },
+  "scope_note": "负例缺失判断限于这 9 个固定源码文件及其直接呈现的行为。已完整阅读这些文件，再逐题核对精确行段；未检查其他模块，不据此断言整个仓库绝无相关实现。",
+  "freshness_note": "本轮从源码重新构造问题，没有读取或复用旧题集；按隔离要求未与旧题集做查重，因此不声称已证明与所有历史题目无语义重合。",
+  "counts": {
+    "total": 24,
+    "answerable": 16,
+    "unanswerable": 8,
+    "answerable_zh": 12,
+    "answerable_en": 4,
+    "unanswerable_zh": 4,
+    "unanswerable_en": 4,
+    "short_natural_questions": 5,
+    "exact_identifier_questions": 11,
+    "descriptive_lowercase_english_negatives": 2
+  },
+  "self_checks": {
+    "every_source_hash_computed_from_current_bytes": true,
+    "every_span_reviewed_against_current_numbered_source_before_writing": true,
+    "span_bounds_valid": true,
+    "positive_spans_between_one_and_three": true,
+    "negative_relevant_spans_empty": true,
+    "unique_ids_and_query_strings": true,
+    "language_balance_checked": true,
+    "required_query_diversity_checked": true
+  },
+  "case_audits": [
+    {
+      "id": "blind-v2-01",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": true,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "反斜杠归一化后按斜杠切分，任意路径段为 .. 就抛出 PolicyError；这些行足够回答该行为。",
+      "evidence": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 39,
+          "end_line": 44,
+          "source_sha256": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+          "first_line": "        normalized = path.replace(\"\\\\\", \"/\")",
+          "last_line": "            raise PolicyError(\"Parent traversal is forbidden.\")",
+          "excerpt": "        normalized = path.replace(\"\\\\\", \"/\")\n        if ntpath.isabs(path) or Path(normalized).is_absolute() or \":\" in normalized:\n            raise PolicyError(\"Absolute paths and alternate data streams are forbidden.\")\n        parts = normalized.split(\"/\")\n        if \"..\" in parts:\n            raise PolicyError(\"Parent traversal is forbidden.\")"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-02",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "os.walk 禁止跟随链接；目录候选还会经过 resolve，后者逐层拒绝符号链接和 junction，PolicyError 会导致目录被剪枝。",
+      "evidence": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 57,
+          "end_line": 62,
+          "source_sha256": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+          "first_line": "        # Refuse symlinks, including aliases to protected files inside the root.",
+          "last_line": "                raise PolicyError(\"Symbolic links and junctions are unavailable to tools.\")",
+          "excerpt": "        # Refuse symlinks, including aliases to protected files inside the root.\n        current = self.root\n        for part in clean:\n            current = current / part\n            if is_link_or_reparse(current):\n                raise PolicyError(\"Symbolic links and junctions are unavailable to tools.\")"
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 71,
+          "end_line": 82,
+          "source_sha256": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+          "first_line": "    def files(self, *, limit: int = 2000) -> tuple[list[str], bool]:",
+          "last_line": "            dirs[:] = safe_dirs",
+          "excerpt": "    def files(self, *, limit: int = 2000) -> tuple[list[str], bool]:\n        result = []\n        for directory, dirs, filenames in os.walk(self.root, followlinks=False):\n            safe_dirs = []\n            for name in sorted(dirs):\n                candidate = Path(directory, name).relative_to(self.root).as_posix()\n                try:\n                    self.resolve(candidate)\n                except PolicyError:\n                    continue\n                safe_dirs.append(name)\n            dirs[:] = safe_dirs"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-03",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "Workspace.state_file"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "方法先拒绝链接状态目录，再逐一检查主数据库、-journal、-wal、-shm，拒绝链接或硬链接。",
+      "evidence": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 94,
+          "end_line": 104,
+          "source_sha256": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+          "first_line": "    def state_file(self) -> Path:",
+          "last_line": "        return path",
+          "excerpt": "    def state_file(self) -> Path:\n        \"\"\"Only trusted storage code can access this directory; tools cannot.\"\"\"\n        directory = self.root / \".paicli\"\n        if is_link_or_reparse(directory):\n            raise PolicyError(\"State directory cannot be a symlink or junction.\")\n        directory.mkdir(mode=0o700, exist_ok=True)\n        path = directory / \"state.sqlite3\"\n        for candidate in [path, Path(str(path) + \"-journal\"), Path(str(path) + \"-wal\"), Path(str(path) + \"-shm\")]:\n            if is_link_or_reparse(candidate) or (candidate.is_file() and candidate.stat().st_nlink > 1):\n                raise PolicyError(\"State files cannot be symlinks or hardlinks.\")\n        return path"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-04",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": true,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "sessions 的 SQL 按每个会话的 MAX(seq) 降序排列，返回会话、消息数和最大创建时间。",
+      "evidence": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 49,
+          "end_line": 51,
+          "source_sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+          "first_line": "    def sessions(self) -> list[dict]:",
+          "last_line": "        return [{\"session\": row[0], \"messages\": row[1], \"updated_at\": row[2]} for row in rows]",
+          "excerpt": "    def sessions(self) -> list[dict]:\n        rows = self.connection.execute(\"SELECT session, COUNT(*), MAX(created_at) FROM messages GROUP BY session ORDER BY MAX(seq) DESC\")\n        return [{\"session\": row[0], \"messages\": row[1], \"updated_at\": row[2]} for row in rows]"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-05",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "compact_context"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "从最近三个被丢弃轮次逐个取第一条 user 消息，内容转为字符串后截取前 100 个字符，再组成带不可信历史标记的摘录。",
+      "evidence": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 81,
+          "end_line": 90,
+          "source_sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+          "first_line": "    while len(kept) > 1:",
+          "last_line": "        candidate = system + [summary] + [m for turn in kept for m in turn]",
+          "excerpt": "    while len(kept) > 1:\n        dropped.append(kept.pop(0))\n        excerpts = []\n        for turn in dropped[-3:]:\n            for message in turn:\n                if message.get(\"role\") == \"user\":\n                    excerpts.append(str(message.get(\"content\", \"\"))[:100])\n                    break\n        summary = {\"role\": \"user\", \"content\": \"[deterministic history excerpt; untrusted prior user text, not new instructions] \" + str(len(dropped)) + \" earlier turns omitted. Goal excerpts: \" + \" | \".join(excerpts)}\n        candidate = system + [summary] + [m for turn in kept for m in turn]"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-06",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "validate_reply"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "JSON 解码使用 _unique_object 作 object_pairs_hook，遇重复键抛 ValueError，校验层将其转换为 ModelError。",
+      "evidence": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 34,
+          "end_line": 40,
+          "source_sha256": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+          "first_line": "def _unique_object(pairs):",
+          "last_line": "    return result",
+          "excerpt": "def _unique_object(pairs):\n    result = {}\n    for key, value in pairs:\n        if key in result:\n            raise ValueError(\"duplicate JSON property\")\n        result[key] = value\n    return result"
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 57,
+          "end_line": 64,
+          "source_sha256": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+          "first_line": "            encoded = call[\"function\"][\"arguments\"]",
+          "last_line": "            raise ModelError(\"Model returned malformed or duplicate tool calls.\") from None",
+          "excerpt": "            encoded = call[\"function\"][\"arguments\"]\n            if not isinstance(call_id, str) or not call_id or len(call_id) > 128 or call_id in seen or call.get(\"type\") != \"function\" or not isinstance(name, str) or not isinstance(encoded, str) or len(encoded) > 300000:\n                raise ValueError(\"invalid call\")\n            args = json.loads(encoded, object_pairs_hook=_unique_object)\n            if not isinstance(args, dict):\n                raise ValueError(\"invalid arguments\")\n        except (ValueError, KeyError, TypeError):\n            raise ModelError(\"Model returned malformed or duplicate tool calls.\") from None"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-07",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "Agent"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "OSError 被包装为 ok=false、FileIOError 和固定安全描述；随后写入 tool 消息和执行轨迹。",
+      "evidence": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 123,
+          "end_line": 134,
+          "source_sha256": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+          "first_line": "                            result = self.tools.execute(name, args, deadline=deadline)",
+          "last_line": "                        trace.append({\"tool\": name, \"ok\": outcome[\"ok\"]})",
+          "excerpt": "                            result = self.tools.execute(name, args, deadline=deadline)\n                            outcome = {\"ok\": True, \"result\": result}\n                        except BudgetExceeded:\n                            raise\n                        except PaiCLIError as exc:\n                            outcome = {\"ok\": False, \"error\": type(exc).__name__, \"detail\": str(exc)}\n                        except OSError:\n                            outcome = {\"ok\": False, \"error\": \"FileIOError\", \"detail\": \"Filesystem operation failed.\"}\n                        tool_message = {\"role\": \"tool\", \"tool_call_id\": call_id, \"content\": json.dumps(outcome, ensure_ascii=False)}\n                        history.append(tool_message)\n                        self.store.append(session, tool_message)\n                        trace.append({\"tool\": name, \"ok\": outcome[\"ok\"]})"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-08",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": true,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "依赖图先检查缺失依赖，再逐轮扩展依赖已完成的节点；尚未结束却没有 ready 节点时抛出含 cycle 的 PlanError。",
+      "evidence": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 31,
+          "end_line": 39,
+          "source_sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+          "first_line": "    graph = {task[\"id\"]: set(task[\"depends_on\"]) for task in tasks}",
+          "last_line": "        finished |= ready",
+          "excerpt": "    graph = {task[\"id\"]: set(task[\"depends_on\"]) for task in tasks}\n    if any(dependencies - seen for dependencies in graph.values()):\n        raise PlanError(\"Plan references a missing dependency.\")\n    finished = set()\n    while len(finished) < len(graph):\n        ready = {task_id for task_id, dependencies in graph.items() if task_id not in finished and dependencies <= finished}\n        if not ready:\n            raise PlanError(\"Plan dependency graph contains a cycle.\")\n        finished |= ready"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-09",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "PlanRunner"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "未达并发上限且 depends_on 全部在 results 中时，构建依赖 ID 到结果的字典，并作为 worker 的第二参数启动任务。",
+      "evidence": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 59,
+          "end_line": 66,
+          "source_sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+          "first_line": "                    for task_id, task in list(pending.items()):",
+          "last_line": "                            del pending[task_id]",
+          "excerpt": "                    for task_id, task in list(pending.items()):\n                        if len(running) >= self.concurrency:\n                            break\n                        if set(task[\"depends_on\"]) <= results.keys():\n                            dependencies = {dep: results[dep] for dep in task[\"depends_on\"]}\n                            job = asyncio.create_task(self.worker(task, dependencies), name=task_id)\n                            running[job] = task_id\n                            del pending[task_id]"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-10",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "AST 函数、异步函数和类节点的起点取声明行与装饰器行的最小值，随后按至多 100 行窗口收集源码，因此包含装饰器。",
+      "evidence": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 35,
+          "end_line": 47,
+          "source_sha256": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+          "first_line": "            nodes = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]",
+          "last_line": "                        result.append((node.name, offset + 1, stop, \"\".join(lines[offset:stop])))",
+          "excerpt": "            nodes = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]\n            if nodes:\n                result = []\n                covered = [False] * len(lines)\n                for node in sorted(nodes, key=lambda n: (n.lineno, n.end_lineno)):\n                    start = min([node.lineno] + [d.lineno for d in node.decorator_list])\n                    end = node.end_lineno or node.lineno\n                    covered[start - 1:end] = [True] * (end - start + 1)\n                    # Large functions/classes retain line ranges but are split into\n                    # bounded windows. Both class and method chunks may overlap.\n                    for offset in range(start - 1, end, 100):\n                        stop = min(offset + 100, end)\n                        result.append((node.name, offset + 1, stop, \"\".join(lines[offset:stop])))"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-11",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "CodeIndex.search"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "候选命中重新解析路径并计算当前摘要，摘要与索引记录不一致就跳过；不可访问和策略拒绝也跳过。",
+      "evidence": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 121,
+          "end_line": 130,
+          "source_sha256": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+          "first_line": "        for path, symbol, start, end, content, digest, score in rows:",
+          "last_line": "            hits.append({\"path\": path, \"symbol\": symbol, \"start_line\": start, \"end_line\": end, \"content\": content[:8000], \"score\": float(score)})",
+          "excerpt": "        for path, symbol, start, end, content, digest, score in rows:\n            try:\n                target = self.workspace.resolve(path)\n                if path not in hashes:\n                    hashes[path] = digest_file(target) if target.stat().st_size <= MAX_FILE_BYTES else None\n                if hashes[path] != digest:\n                    continue\n            except (OSError, PolicyError):\n                continue\n            hits.append({\"path\": path, \"symbol\": symbol, \"start_line\": start, \"end_line\": end, \"content\": content[:8000], \"score\": float(score)})"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-12",
+      "language": "zh",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "validate_url"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "除通用 HTTP(S) URL 校验外，http 仅允许 localhost、127.0.0.1、::1，其他主机要求 HTTPS。",
+      "evidence": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 13,
+          "end_line": 23,
+          "source_sha256": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+          "first_line": "def validate_url(url: str, error_type=ModelError) -> str:",
+          "last_line": "    return url.rstrip(\"/\")",
+          "excerpt": "def validate_url(url: str, error_type=ModelError) -> str:\n    try:\n        parsed = urlsplit(url)\n        _ = parsed.port\n    except ValueError:\n        raise error_type(\"Invalid HTTP endpoint.\") from None\n    if parsed.scheme not in {\"http\", \"https\"} or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:\n        raise error_type(\"Endpoint must use HTTP(S) without userinfo, query, or fragment.\")\n    if parsed.scheme == \"http\" and parsed.hostname not in {\"localhost\", \"127.0.0.1\", \"::1\"}:\n        raise error_type(\"Remote credentials require HTTPS; HTTP is allowed only for loopback development.\")\n    return url.rstrip(\"/\")"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-13",
+      "language": "en",
+      "answerable": true,
+      "short_natural_question": true,
+      "exact_identifiers": [
+        "ScriptedModel"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "complete 先保存请求副本，若响应列表为空则抛出 ModelError，错误明确没有隐式回退。",
+      "evidence": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 33,
+          "end_line": 37,
+          "source_sha256": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+          "first_line": "    async def complete(self, messages: list[dict], tools: list[dict]) -> dict:",
+          "last_line": "        return self.responses.pop(0)",
+          "excerpt": "    async def complete(self, messages: list[dict], tools: list[dict]) -> dict:\n        self.requests.append(copy.deepcopy(messages))\n        if not self.responses:\n            raise ModelError(\"Scripted model exhausted; no implicit fallback is available.\")\n        return self.responses.pop(0)"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-14",
+      "language": "en",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "quota 检查 used_bytes、limit_bytes、remaining_bytes 为真正的非负整数，limit 至少为 1，且 used 加 remaining 等于 limit。",
+      "evidence": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 31,
+          "end_line": 32,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "def _integer(value, minimum=0):",
+          "last_line": "    return type(value) is int and value >= minimum",
+          "excerpt": "def _integer(value, minimum=0):\n    return type(value) is int and value >= minimum"
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 190,
+          "end_line": 196,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "    async def quota(self) -> dict:",
+          "last_line": "        return data",
+          "excerpt": "    async def quota(self) -> dict:\n        data = _json(await self._download(\"/api/quota\"))\n        keys = (\"used_bytes\", \"limit_bytes\", \"remaining_bytes\")\n        if (not isinstance(data, dict) or not all(_integer(data.get(key)) for key in keys)\n                or data[\"limit_bytes\"] < 1 or data[\"used_bytes\"] + data[\"remaining_bytes\"] != data[\"limit_bytes\"]):\n            _invalid_response()\n        return data"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-15",
+      "language": "en",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "cursor 从 after 初始化，每次成功事件后更新为该事件序号；后续序号小于或等于 cursor 会使整个解析抛出 PlatformError。",
+      "evidence": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 72,
+          "end_line": 73,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "    items, cursor = [], after",
+          "last_line": "    fields, data_lines = {}, []",
+          "excerpt": "    items, cursor = [], after\n    fields, data_lines = {}, []"
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 90,
+          "end_line": 106,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "        if not data_lines or not re.fullmatch(r\"[0-9]{1,18}\", fields.get(\"id\", \"\")):",
+          "last_line": "        cursor = sequence",
+          "excerpt": "        if not data_lines or not re.fullmatch(r\"[0-9]{1,18}\", fields.get(\"id\", \"\")):\n            raise PlatformError(\"Platform returned an invalid SSE event.\")\n        item = _json(\"\\n\".join(data_lines))\n        sequence = int(fields[\"id\"])\n        event_type = fields.get(\"event\")\n        if (not isinstance(item, dict) or not _integer(item.get(\"seq\"), 1)\n                or item[\"seq\"] != sequence or sequence <= cursor\n                or not isinstance(event_type, str) or not re.fullmatch(r\"[A-Z][A-Z0-9_]{0,63}\", event_type)\n                or item.get(\"type\") != event_type or not isinstance(item.get(\"data\"), dict)\n                or not _string(item.get(\"created_at\"))\n                or \"node_id\" not in item or not _string(item[\"node_id\"], nullable=True)\n                or \"attempt\" not in item or not (item[\"attempt\"] is None or _integer(item[\"attempt\"]))):\n            raise PlatformError(\"Platform returned an invalid or out-of-order SSE event.\")\n        if len(items) >= MAX_EVENTS:\n            raise PlatformError(\"Platform history exceeds the event limit; query again with --after.\")\n        items.append(item)\n        cursor = sequence"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-16",
+      "language": "en",
+      "answerable": true,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "doctor"
+      ],
+      "review_kind": "sufficient_implementation_evidence",
+      "rationale": "DNS 失败分支记录 DNS 错误，为 TCP 和 HTTP 标记因 DNS 失败跳过，并立即返回。",
+      "evidence": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 253,
+          "end_line": 261,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "    result = {\"host\": host, \"port\": port, \"dns\": {\"ok\": False}, \"tcp\": {\"ok\": False}, \"http\": {\"ok\": False}}",
+          "last_line": "        return result",
+          "excerpt": "    result = {\"host\": host, \"port\": port, \"dns\": {\"ok\": False}, \"tcp\": {\"ok\": False}, \"http\": {\"ok\": False}}\n    try:\n        addresses = await asyncio.wait_for(asyncio.get_running_loop().getaddrinfo(host, port, type=socket.SOCK_STREAM), timeout_seconds)\n        result[\"dns\"] = {\"ok\": True, \"addresses\": sorted({item[4][0] for item in addresses})}\n    except (OSError, TimeoutError):\n        result[\"dns\"][\"error\"] = \"DNS resolution failed or timed out.\"\n        result[\"tcp\"][\"error\"] = \"Skipped because DNS failed.\"\n        result[\"http\"][\"error\"] = \"Skipped because DNS failed.\"\n        return result"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-17",
+      "language": "zh",
+      "answerable": false,
+      "short_natural_question": true,
+      "exact_identifiers": [],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "相邻实现有 SQLite 建连和事务插入，但没有应用层 busy 重试循环、指数退避计算或可配置的退避参数。不能把 sqlite3 的默认连接行为当成所问能力。",
+      "evidence": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 13,
+          "end_line": 18,
+          "source_sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+          "first_line": "    def __init__(self, workspace: Workspace):",
+          "last_line": "        self.connection.execute(\"PRAGMA foreign_keys = ON\")",
+          "excerpt": "    def __init__(self, workspace: Workspace):\n        path = workspace.state_file()\n        self.connection = sqlite3.connect(path)\n        if os.name != \"nt\":\n            path.chmod(0o600)\n        self.connection.execute(\"PRAGMA foreign_keys = ON\")"
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 39,
+          "end_line": 43,
+          "source_sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+          "first_line": "    def append(self, session: str, message: dict) -> None:",
+          "last_line": "            self.connection.execute(\"INSERT INTO messages(session, message) VALUES (?, ?)\", (session, json.dumps(message, ensure_ascii=False)))",
+          "excerpt": "    def append(self, session: str, message: dict) -> None:\n        if not isinstance(session, str) or not session.strip() or len(session) > 128:\n            raise PolicyError(\"Session ID must contain 1–128 characters.\")\n        with self.connection:\n            self.connection.execute(\"INSERT INTO messages(session, message) VALUES (?, ?)\", (session, json.dumps(message, ensure_ascii=False)))"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-18",
+      "language": "zh",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "PlanRunner 每次新建内存 pending、running、results，失败时取消剩余任务；没有计划检查点的落盘、加载或恢复流程。Agent 的会话账本不足以证明计划级磁盘恢复。",
+      "evidence": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 51,
+          "end_line": 55,
+          "source_sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+          "first_line": "    async def run(self, plan: dict) -> dict:",
+          "last_line": "        results = {}",
+          "excerpt": "    async def run(self, plan: dict) -> dict:\n        tasks = validate_plan(plan)\n        pending = {task[\"id\"]: task for task in tasks}\n        running = {}\n        results = {}"
+        },
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 69,
+          "end_line": 83,
+          "source_sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+          "first_line": "                    completed, _ = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)",
+          "last_line": "                await asyncio.gather(*running, return_exceptions=True)",
+          "excerpt": "                    completed, _ = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)\n                    for job in completed:\n                        task_id = running.pop(job)\n                        try:\n                            results[task_id] = job.result()\n                        except Exception:\n                            raise PlanError(f\"Task '{task_id}' failed; outstanding tasks were cancelled.\") from None\n                return results\n        except TimeoutError:\n            raise BudgetExceeded(\"Plan execution time budget exhausted.\") from None\n        finally:\n            for job in running:\n                job.cancel()\n            if running:\n                await asyncio.gather(*running, return_exceptions=True)"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-19",
+      "language": "zh",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "任务允许字段只有 id、goal、depends_on、script，调度仅检查并发数和依赖完成；没有资源声明、资源锁或优先级队列。现有并发限制不足以回答资源优先级策略。",
+      "evidence": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 15,
+          "end_line": 17,
+          "source_sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+          "first_line": "    for raw in plan[\"tasks\"]:",
+          "last_line": "            raise PlanError(\"Task contains unknown fields.\")",
+          "excerpt": "    for raw in plan[\"tasks\"]:\n        if not isinstance(raw, dict) or set(raw) - {\"id\", \"goal\", \"depends_on\", \"script\"}:\n            raise PlanError(\"Task contains unknown fields.\")"
+        },
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 59,
+          "end_line": 69,
+          "source_sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+          "first_line": "                    for task_id, task in list(pending.items()):",
+          "last_line": "                    completed, _ = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)",
+          "excerpt": "                    for task_id, task in list(pending.items()):\n                        if len(running) >= self.concurrency:\n                            break\n                        if set(task[\"depends_on\"]) <= results.keys():\n                            dependencies = {dep: results[dep] for dep in task[\"depends_on\"]}\n                            job = asyncio.create_task(self.worker(task, dependencies), name=task_id)\n                            running[job] = task_id\n                            del pending[task_id]\n                    if not running:\n                        raise PlanError(\"No runnable tasks remain.\")\n                    completed, _ = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-20",
+      "language": "zh",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "消息表有 created_at，存储接口能追加、查询和列举会话，但没有逐消息过期字段、保留期配置、定时清理或删除逻辑。创建时间本身不足以提供自动到期删除。",
+      "evidence": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 20,
+          "end_line": 26,
+          "source_sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+          "first_line": "            CREATE TABLE IF NOT EXISTS messages (",
+          "last_line": "            CREATE INDEX IF NOT EXISTS messages_session ON messages(session, seq);",
+          "excerpt": "            CREATE TABLE IF NOT EXISTS messages (\n                seq INTEGER PRIMARY KEY AUTOINCREMENT,\n                session TEXT NOT NULL,\n                message TEXT NOT NULL,\n                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n            );\n            CREATE INDEX IF NOT EXISTS messages_session ON messages(session, seq);"
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 39,
+          "end_line": 51,
+          "source_sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+          "first_line": "    def append(self, session: str, message: dict) -> None:",
+          "last_line": "        return [{\"session\": row[0], \"messages\": row[1], \"updated_at\": row[2]} for row in rows]",
+          "excerpt": "    def append(self, session: str, message: dict) -> None:\n        if not isinstance(session, str) or not session.strip() or len(session) > 128:\n            raise PolicyError(\"Session ID must contain 1–128 characters.\")\n        with self.connection:\n            self.connection.execute(\"INSERT INTO messages(session, message) VALUES (?, ?)\", (session, json.dumps(message, ensure_ascii=False)))\n\n    def messages(self, session: str) -> list[dict]:\n        rows = self.connection.execute(\"SELECT message FROM messages WHERE session = ? ORDER BY seq\", (session,))\n        return [json.loads(row[0]) for row in rows]\n\n    def sessions(self) -> list[dict]:\n        rows = self.connection.execute(\"SELECT session, COUNT(*), MAX(created_at) FROM messages GROUP BY session ORDER BY MAX(seq) DESC\")\n        return [{\"session\": row[0], \"messages\": row[1], \"updated_at\": row[2]} for row in rows]"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-21",
+      "language": "en",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "PlatformClient"
+      ],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "相邻 API 只通过 _download 发起 GET 来读取运行及事件；PlatformClient 没有取消远端运行的方法或写入请求。PlanRunner 对本地异步任务的 cancel 不属于远端运行取消。",
+      "evidence": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 146,
+          "end_line": 158,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "    async def _download(self, path: str, *, event_cursor: int | None = None) -> bytes:",
+          "last_line": "                        raise PlatformError(f\"Platform returned HTTP {response.status_code}.\")",
+          "excerpt": "    async def _download(self, path: str, *, event_cursor: int | None = None) -> bytes:\n        owned = self._client is None\n        client = self._client or httpx.AsyncClient(timeout=self.timeout_seconds, follow_redirects=False, trust_env=False)\n        headers = {\"Authorization\": \"Bearer \" + self._token}\n        if event_cursor is not None:\n            headers.update({\"Accept\": \"text/event-stream\", \"Last-Event-ID\": str(event_cursor)})\n        try:\n            # httpx's read timeout applies to each chunk. Bound the entire\n            # request as well so a slow history stream cannot run indefinitely.\n            async with asyncio.timeout(self.timeout_seconds):\n                async with client.stream(\"GET\", self.base_url + path, headers=headers, timeout=self.timeout_seconds, follow_redirects=False) as response:\n                    if not 200 <= response.status_code < 300:\n                        raise PlatformError(f\"Platform returned HTTP {response.status_code}.\")"
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 198,
+          "end_line": 204,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "    async def run(self, run_id: str) -> dict:",
+          "last_line": "            _invalid_response()",
+          "excerpt": "    async def run(self, run_id: str) -> dict:\n        data = _json(await self._download(\"/api/runs/\" + _run_id(run_id)))\n        _summary(data)\n        if (data[\"id\"] != run_id or not isinstance(data.get(\"workflow\"), dict)\n                or not _string(data[\"workflow\"].get(\"name\")) or not isinstance(data[\"workflow\"].get(\"nodes\"), list)\n                or not isinstance(data.get(\"inputs\"), dict) or not isinstance(data.get(\"nodes\"), list)):\n            _invalid_response()"
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 234,
+          "end_line": 238,
+          "source_sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+          "first_line": "    async def events(self, run_id: str, *, after: int = 0) -> dict:",
+          "last_line": "        return _events(await self._download(\"/api/runs/\" + run_id + \"/events?follow=false\", event_cursor=after), after)",
+          "excerpt": "    async def events(self, run_id: str, *, after: int = 0) -> dict:\n        run_id = _run_id(run_id)\n        if not _integer(after) or after >= 10 ** 18:\n            raise PlatformError(\"Event cursor must be a nonnegative integer of at most 18 digits.\")\n        return _events(await self._download(\"/api/runs/\" + run_id + \"/events?follow=false\", event_cursor=after), after)"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-22",
+      "language": "en",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [
+        "OpenAIModel"
+      ],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "构造器和请求实现具有 URL 校验、客户端和超时配置，但没有证书指纹配置、证书读取或 SHA-256 比较。HTTP 客户端的常规 TLS 校验不能作为证书固定机制的实现证据。",
+      "evidence": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 40,
+          "end_line": 50,
+          "source_sha256": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+          "first_line": "class OpenAIModel:",
+          "last_line": "        self.timeout_seconds = timeout_seconds",
+          "excerpt": "class OpenAIModel:\n    def __init__(self, base_url: str, model: str, api_key: str, *, client: httpx.AsyncClient | None = None, timeout_seconds: float = 20):\n        self.base_url = validate_url(base_url)\n        if not isinstance(api_key, str) or not api_key.strip():\n            raise ModelError(\"Set OPENAI_API_KEY in the environment.\")\n        if not model.strip():\n            raise ModelError(\"A model name is required.\")\n        self.model = model\n        self._api_key = api_key\n        self._client = client\n        self.timeout_seconds = timeout_seconds"
+        },
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 57,
+          "end_line": 60,
+          "source_sha256": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+          "first_line": "        owned = self._client is None",
+          "last_line": "            async with client.stream(\"POST\", self.base_url + \"/chat/completions\", json=payload, headers={\"Authorization\": \"Bearer \" + self._api_key}, timeout=self.timeout_seconds, follow_redirects=False) as response:",
+          "excerpt": "        owned = self._client is None\n        client = self._client or httpx.AsyncClient(timeout=self.timeout_seconds, follow_redirects=False)\n        try:\n            async with client.stream(\"POST\", self.base_url + \"/chat/completions\", json=payload, headers={\"Authorization\": \"Bearer \" + self._api_key}, timeout=self.timeout_seconds, follow_redirects=False) as response:"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-23",
+      "language": "en",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "build 是显式枚举并重建索引的同步方法，search 发现摘要变化只跳过旧命中；没有文件监视器、后台任务或变更触发的索引更新。",
+      "evidence": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 70,
+          "end_line": 90,
+          "source_sha256": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+          "first_line": "    def build(self) -> dict:",
+          "last_line": "                records.append((name, symbol, start, end, chunk, digest))",
+          "excerpt": "    def build(self) -> dict:\n        paths, truncated = self.workspace.files(limit=5000)\n        records = []\n        files = 0\n        skipped = 0\n        for name in paths:\n            if Path(name).suffix.lower() not in INDEX_SUFFIXES:\n                continue\n            try:\n                path = self.workspace.resolve(name)\n                if path.stat().st_size > MAX_FILE_BYTES:\n                    skipped += 1\n                    continue\n                raw = path.read_bytes()\n                content = raw.decode(\"utf-8\")\n            except (OSError, UnicodeError, PolicyError):\n                skipped += 1\n                continue\n            digest = hashlib.sha256(raw).hexdigest()\n            for symbol, start, end, chunk in chunks_for(name, content):\n                records.append((name, symbol, start, end, chunk, digest))"
+        },
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 92,
+          "end_line": 99,
+          "source_sha256": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+          "first_line": "        con = self.store.connection",
+          "last_line": "        return {\"files\": files, \"chunks\": len(records), \"skipped\": skipped, \"truncated\": truncated, \"retrieval\": \"SQLite FTS5 / BM25 lexical\"}",
+          "excerpt": "        con = self.store.connection\n        with con:\n            con.execute(\"DELETE FROM chunks\")\n            con.execute(\"DELETE FROM chunks_fts\")\n            for record in records:\n                cursor = con.execute(\"INSERT INTO chunks(path,symbol,start_line,end_line,content,digest) VALUES (?,?,?,?,?,?)\", record)\n                con.execute(\"INSERT INTO chunks_fts(rowid,path,symbol,content) VALUES (?,?,?,?)\", (cursor.lastrowid, record[0], record[1], record[4]))\n        return {\"files\": files, \"chunks\": len(records), \"skipped\": skipped, \"truncated\": truncated, \"retrieval\": \"SQLite FTS5 / BM25 lexical\"}"
+        },
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 121,
+          "end_line": 129,
+          "source_sha256": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+          "first_line": "        for path, symbol, start, end, content, digest, score in rows:",
+          "last_line": "                continue",
+          "excerpt": "        for path, symbol, start, end, content, digest, score in rows:\n            try:\n                target = self.workspace.resolve(path)\n                if path not in hashes:\n                    hashes[path] = digest_file(target) if target.stat().st_size <= MAX_FILE_BYTES else None\n                if hashes[path] != digest:\n                    continue\n            except (OSError, PolicyError):\n                continue"
+        }
+      ]
+    },
+    {
+      "id": "blind-v2-24",
+      "language": "en",
+      "answerable": false,
+      "short_natural_question": false,
+      "exact_identifiers": [],
+      "review_kind": "nearby_but_insufficient_implementation",
+      "rationale": "Budget 限制轮数、时间、上下文字符和每轮调用数，运行结果统计轮数和工具调用；模型适配器只提取 message，没有读取 token usage、价格或累计会话金额。现有预算不是花费上限。",
+      "evidence": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 22,
+          "end_line": 31,
+          "source_sha256": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+          "first_line": "@dataclass(frozen=True)",
+          "last_line": "            raise ValueError(\"Invalid agent budget.\")",
+          "excerpt": "@dataclass(frozen=True)\nclass Budget:\n    max_rounds: int = 8\n    timeout_seconds: float = 60\n    context_chars: int = 24000\n    max_calls_per_round: int = 16\n\n    def __post_init__(self):\n        if type(self.max_rounds) is not int or not 1 <= self.max_rounds <= 100 or not 0 < self.timeout_seconds <= 3600 or self.context_chars < 500 or not 1 <= self.max_calls_per_round <= 32:\n            raise ValueError(\"Invalid agent budget.\")"
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 112,
+          "end_line": 118,
+          "source_sha256": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+          "first_line": "                    context = compact_context(history, self.budget.context_chars)",
+          "last_line": "                        return {\"session\": session, \"answer\": message[\"content\"], \"rounds\": round_number, \"tool_calls\": tool_count, \"trace\": trace}",
+          "excerpt": "                    context = compact_context(history, self.budget.context_chars)\n                    reply = await self.model.complete(context, self.tools.definitions())\n                    message, calls = validate_reply(reply, self.budget.max_calls_per_round)\n                    history.append(message)\n                    self.store.append(session, message)\n                    if not calls:\n                        return {\"session\": session, \"answer\": message[\"content\"], \"rounds\": round_number, \"tool_calls\": tool_count, \"trace\": trace}"
+        },
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 68,
+          "end_line": 72,
+          "source_sha256": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+          "first_line": "            data = json.loads(raw)",
+          "last_line": "            return message",
+          "excerpt": "            data = json.loads(raw)\n            message = data[\"choices\"][0][\"message\"]\n            if not isinstance(message, dict) or message.get(\"role\") != \"assistant\":\n                raise ValueError(\"invalid message\")\n            return message"
+        }
+      ]
+    }
+  ]
+}

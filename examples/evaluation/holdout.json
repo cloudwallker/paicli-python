@@ -1,0 +1,347 @@
+{
+  "name": "paicli_source_holdout_20261023",
+  "version": 1,
+  "annotation_note": "由独立代理依据所列九个源码文件构造并冻结的候选留出集；该代理读过源码，非独立人工标注。构造期间未读取 retrieval.py、evaluation.py、tools.py、既有 examples/evaluation/cases.json，未观察任何检索输出或实现代理消息。可回答性仅针对 source_files 所定义的完整小语料；同项目评测不等同于跨项目泛化评测，也不称为官方 benchmark。无答案题要求的具体能力在该语料中没有实现，相关片段为空；相邻但不足的实现及判定边界记录于 annotation-audit.json。",
+  "source_files": {
+    "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+    "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+    "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+    "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+    "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+    "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+    "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+    "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+    "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589"
+  },
+  "cases": [
+    {
+      "id": "h01",
+      "query": "在 Windows 上把文件叫成 NUL.txt，或者在文件名末尾留一个空格、一个点，会在什么地方被拦住？这些名称为什么不能直接拼到工作目录下？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 18,
+          "end_line": 18
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 48,
+          "end_line": 55
+        }
+      ],
+      "category": "workspace_windows_name_boundaries"
+    },
+    {
+      "id": "h02",
+      "query": "扫描项目文件时，碰到不让访问的子目录会不会继续钻进去？扫描达到数量上限后，返回的文件顺序和截断标记是怎样的？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 71,
+          "end_line": 92
+        }
+      ],
+      "category": "workspace_walk_pruning_and_limit"
+    },
+    {
+      "id": "h03",
+      "query": "内部状态目录明明不让普通工具访问，程序怎样为自己的状态数据库选路径，并防止旁边的 journal、wal、shm 文件被换成链接？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 16,
+          "end_line": 17
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 48,
+          "end_line": 53
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 94,
+          "end_line": 104
+        }
+      ],
+      "category": "workspace_private_state_sidecars"
+    },
+    {
+      "id": "h04",
+      "query": "聊天太长时是把老消息一条条裁掉，还是整轮删除？如果只剩系统消息和最新这一轮，仍然超过字符预算，会怎么办？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 61,
+          "end_line": 78
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 79,
+          "end_line": 93
+        }
+      ],
+      "category": "context_whole_turn_budget_boundary"
+    },
+    {
+      "id": "h05",
+      "query": "两个会话的更新时间可能落在同一秒，列出最近会话时究竟按时间还是写入顺序排序？每个会话的消息条数又从哪里统计？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 20,
+          "end_line": 26
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 49,
+          "end_line": 51
+        }
+      ],
+      "category": "session_recency_and_count"
+    },
+    {
+      "id": "h06",
+      "query": "上次运行被打断，历史里已经记下工具调用却没记下结果；这次接着聊时会补什么记录，是否会直接重跑那个工具？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 82,
+          "end_line": 103
+        }
+      ],
+      "category": "agent_interrupted_tool_repair"
+    },
+    {
+      "id": "h07",
+      "query": "模型发来工具参数 JSON，其中同一个字段写了两遍，值还不一样。这里会保留后一个值，还是拒绝整次调用？这个检查怎么接到回复校验里的？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 34,
+          "end_line": 40
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 53,
+          "end_line": 64
+        }
+      ],
+      "category": "agent_duplicate_json_properties"
+    },
+    {
+      "id": "h08",
+      "query": "工具抛出 PaiCLIError 业务异常、文件系统异常和预算耗尽时，主循环分别怎么处理？哪些会写成工具失败消息继续留在历史里，哪些会直接终止？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 119,
+          "end_line": 137
+        },
+        {
+          "path": "src/paicli/errors.py",
+          "start_line": 4,
+          "end_line": 17
+        }
+      ],
+      "category": "agent_tool_failure_and_budget_escape"
+    },
+    {
+      "id": "h09",
+      "query": "任务依赖里写了一个根本不存在的编号，和几个任务互相依赖形成闭环，会在启动执行前怎样分别识别？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 31,
+          "end_line": 40
+        },
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 51,
+          "end_line": 53
+        }
+      ],
+      "category": "plan_missing_dependency_and_cycle"
+    },
+    {
+      "id": "h10",
+      "query": "甲乙两个任务已经并行跑起来，丙只依赖甲。甲先完成而乙还没结束时，丙能开始吗，丙收到哪些前置结果？如果随后一个任务报错，仍在跑的任务怎么收尾？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 58,
+          "end_line": 75
+        },
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 79,
+          "end_line": 83
+        }
+      ],
+      "category": "plan_dependency_release_and_cancellation"
+    },
+    {
+      "id": "h11",
+      "query": "Python 源码里的字符串带有 U+2028 分隔符时，代码块行号会不会偏掉？函数前面的装饰器会不会漏进不了块，超过一百行的定义又怎么切？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 23,
+          "end_line": 47
+        }
+      ],
+      "category": "source_chunk_line_and_decorator_boundaries"
+    },
+    {
+      "id": "h12",
+      "query": "Python 文件只有顶层常量、导入和执行语句时还能建立代码块吗？如果文件有函数，函数外面的内容怎么办；语法暂时写坏后又走哪条分块路径？",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 29,
+          "end_line": 38
+        },
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 48,
+          "end_line": 62
+        }
+      ],
+      "category": "source_chunk_module_gaps_and_fallback"
+    },
+    {
+      "id": "h13",
+      "query": "If I mutate the offline reply list after constructing the model, or mutate a message after a request, do those changes alter the recorded script or request history? What happens when the script runs out?",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 26,
+          "end_line": 37
+        }
+      ],
+      "category": "offline_model_copy_and_exhaustion"
+    },
+    {
+      "id": "h14",
+      "query": "Can the platform client send its bearer credential to a remote plain-HTTP endpoint, and does a loopback development URL follow the same rule? Where is that policy shared with the model adapter?",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 13,
+          "end_line": 23
+        },
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 40,
+          "end_line": 44
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 132,
+          "end_line": 138
+        }
+      ],
+      "category": "shared_endpoint_transport_policy"
+    },
+    {
+      "id": "h15",
+      "query": "An event-history response already returned HTTP 200 and some valid records, then an SSE error reports authentication_invalid. Does the client return the partial history, and what error detail can escape to the caller?",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 61,
+          "end_line": 66
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 75,
+          "end_line": 89
+        }
+      ],
+      "category": "platform_sse_midstream_auth_failure"
+    },
+    {
+      "id": "h16",
+      "query": "During connection diagnostics, DNS succeeds but the TCP probe fails. Is the HTTP probe still attempted, and how is that different from a DNS failure?",
+      "answerable": true,
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 254,
+          "end_line": 275
+        }
+      ],
+      "category": "diagnostic_stage_failure_semantics"
+    },
+    {
+      "id": "h17",
+      "query": "会话历史按保留天数自动过期的后台任务在哪里启动，如何配置三十天后清理旧消息？",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_session_retention_jobs"
+    },
+    {
+      "id": "h18",
+      "query": "请定位用 SQLCipher 加密会话数据库的初始化代码，以及轮换数据库解密密钥的实现。",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_database_encryption_key_rotation"
+    },
+    {
+      "id": "h19",
+      "query": "请找到计划任务失败后按指数退避自动重试的配置读取和调度实现，包括最大重试次数。",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_plan_backoff_retries"
+    },
+    {
+      "id": "h20",
+      "query": "每次工具执行如何导出 OpenTelemetry span 并发送到 OTLP Collector？请指出采样率配置和发送代码。",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_distributed_trace_export"
+    },
+    {
+      "id": "h21",
+      "query": "Where is the OAuth device-code login flow that opens a verification URL and stores a refresh token?",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_oauth_device_authorization"
+    },
+    {
+      "id": "h22",
+      "query": "Show the implementation that persists a plan checkpoint and resumes only unfinished tasks after the Python process restarts.",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_durable_plan_resume"
+    },
+    {
+      "id": "h23",
+      "query": "Where does the client download workflow output artifacts to disk, verify their signatures, and resume interrupted transfers?",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_artifact_transfer_and_signature_verification"
+    },
+    {
+      "id": "h24",
+      "query": "Show the scheduler for recurring calendar jobs, including IANA time-zone handling and daylight-saving overlap resolution.",
+      "answerable": false,
+      "relevant_spans": [],
+      "category": "absent_calendar_timezone_scheduler"
+    }
+  ]
+}

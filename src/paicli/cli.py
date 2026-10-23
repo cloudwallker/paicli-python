@@ -144,6 +144,25 @@ def parser() -> argparse.ArgumentParser:
     search = add("search", "Search the existing lexical code index", True)
     search.add_argument("query")
     search.add_argument("--limit", type=int, default=5)
+    retrieval = add("retrieve", "Retrieve Chinese/English code evidence with an explicit lexical gate", True)
+    retrieval.add_argument("query")
+    retrieval.add_argument("--limit", type=int, default=5)
+    graph = add("graph", "Inspect current Python definitions and conservative cross-file calls", True)
+    selector = graph.add_mutually_exclusive_group()
+    selector.add_argument("--query", help="Find definitions by name")
+    selector.add_argument("--symbol", help="Exact symbol id returned by --query")
+    graph.add_argument("--direction", choices=["callers", "callees"], default="callees")
+    graph.add_argument("--depth", type=int, choices=[1, 2, 3], default=1)
+    graph.add_argument("--limit", type=int, default=20)
+    evaluation = add("evaluate", "Evaluate a versioned source-only retrieval dataset", True)
+    evaluation.add_argument("dataset", help="JSON dataset with source hashes and relevance spans")
+    evaluation.add_argument("--k", type=int, default=5)
+    evaluation.add_argument("--provider", choices=["none", "openai"], default="none")
+    evaluation.add_argument("--base-url", default="https://api.openai.com/v1")
+    evaluation.add_argument("--model", help="Explicit remote model; source evidence is sent only when provider=openai")
+    evaluation.add_argument("--method", choices=["bm25", "graph_expand", "code_aware", "code_aware_gated"], default="bm25")
+    evaluation.add_argument("--timeout", type=float, default=20)
+    evaluation.add_argument("--repeats", type=int, default=1)
     agent = add("agent", "Run a bounded tool-call agent", True)
     agent.add_argument("goal")
     model_options(agent)
@@ -193,6 +212,32 @@ async def dispatch(args) -> dict | list:
     workspace = Workspace(args.workspace)
     if args.command == "audit":
         return audit(workspace)
+    if args.command == "graph":
+        from .codegraph import CodeGraph
+        graph = CodeGraph(workspace)
+        summary = graph.build()
+        if args.query is not None:
+            result = graph.find_symbols(args.query, args.limit)
+        elif args.symbol is not None:
+            result = graph.neighbors(args.symbol, direction=args.direction, depth=args.depth, limit=args.limit)
+        else:
+            result = summary
+        return {**result, "diagnostics": summary["diagnostics"],
+                "analysis_incomplete": bool(summary["truncated"] or summary["diagnostics"])}
+    if args.command == "evaluate":
+        from .evaluation import evaluate_answers, evaluate_retrieval
+        dataset = load_json(args.dataset)
+        report = evaluate_retrieval(dataset, workspace, k=args.k)
+        report["answers"] = {"status": "not_requested", "reason": "offline_by_default"}
+        if args.provider == "openai":
+            key = os.environ.get("OPENAI_API_KEY", "")
+            if not key.strip() or not (args.model or "").strip():
+                report["answers"] = {"status": "not_run", "reason": "missing_model_configuration"}
+            else:
+                model = OpenAIModel(args.base_url, args.model, key, timeout_seconds=args.timeout)
+                report["answers"] = await evaluate_answers(dataset, report, model,
+                    method=args.method, timeout_seconds=args.timeout, repeats=args.repeats)
+        return report
     if args.command == "plan":
         definition = load_json(args.file)
         validate_plan(definition)  # Reject bad DAGs before starting workers.
@@ -202,6 +247,9 @@ async def dispatch(args) -> dict | list:
             return CodeIndex(workspace, store).build()
         if args.command == "search":
             return {"hits": CodeIndex(workspace, store).search(args.query, args.limit), "retrieval": "lexical"}
+        if args.command == "retrieve":
+            return ToolRegistry(workspace, store=store, read_only=True).execute(
+                "retrieve_code", {"query": args.query, "limit": args.limit})
         if args.command == "sessions":
             return {"sessions": store.sessions()}
         if args.command == "agent":
@@ -230,6 +278,8 @@ def main(argv: list[str] | None = None) -> int:
         # restore escaped Unicode exactly; no process-wide stream override is needed.
         print(json.dumps(result, ensure_ascii=True, indent=2))
         if args.command == "doctor" and not all(result[stage]["ok"] for stage in ("dns", "tcp", "http")):
+            return 1
+        if args.command == "evaluate" and result["answers"]["status"] in {"not_run", "completed_with_errors"}:
             return 1
         return 0
     except KeyboardInterrupt:
