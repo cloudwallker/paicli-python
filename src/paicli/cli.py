@@ -163,9 +163,18 @@ def parser() -> argparse.ArgumentParser:
     diagnostic.add_argument("--timeout", type=float, default=3)
     platform = add("platform", "Read FlowTrail platform APIs")
     children = platform.add_subparsers(dest="operation", required=True)
-    runs = children.add_parser("runs")
-    runs.add_argument("--base-url", default="http://127.0.0.1:8000")
-    runs.add_argument("--json", action="store_true")
+    for operation, help_text in [("me", "Show authenticated tenant and role"),
+                                 ("quota", "Show tenant object-storage quota"),
+                                 ("runs", "List recent runs"),
+                                 ("run", "Show one run and node outputs"),
+                                 ("events", "Read bounded SSE event history and its replay cursor")]:
+        command = children.add_parser(operation, help=help_text)
+        command.add_argument("--base-url", default="http://127.0.0.1:8000")
+        command.add_argument("--json", action="store_true")
+        if operation in {"run", "events"}:
+            command.add_argument("run_id")
+        if operation == "events":
+            command.add_argument("--after", type=int, default=0, help="Replay events after this sequence (Last-Event-ID)")
     return result
 
 
@@ -175,7 +184,12 @@ async def dispatch(args) -> dict | list:
     if args.command == "doctor":
         return await doctor(args.url, args.timeout)
     if args.command == "platform":
-        return await PlatformClient(args.base_url, os.environ.get("FLOWTRAIL_API_TOKEN", "")).runs()
+        client = PlatformClient(args.base_url, os.environ.get("FLOWTRAIL_API_TOKEN", ""))
+        if args.operation == "run":
+            return await client.run(args.run_id)
+        if args.operation == "events":
+            return await client.events(args.run_id, after=args.after)
+        return await getattr(client, args.operation)()
     workspace = Workspace(args.workspace)
     if args.command == "audit":
         return audit(workspace)

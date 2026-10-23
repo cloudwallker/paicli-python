@@ -32,9 +32,9 @@ paicli demo --json
 | Tools | `read_file`, `list_files`, `search_code`, `write_file`; declared argument schemas and source-path checks |
 | Write approval | Full diff and a SHA-256 fingerprint bound to the relative path, previous content, and proposed content; exact interactive approval for every write |
 | Sessions | SQLite ledger of system, user, assistant, and tool messages; resumable session IDs and deterministic excerpts of older turns |
-| Code retrieval | Python `ast` function/class chunks, bounded line windows, SQLite FTS5/BM25 lexical ranking, source locations, and stale-content rejection |
+| Code retrieval | Python AST chunks plus imports/constants/top-level code, JSX/MJS/CSS/HTML support, bounded windows, FTS5/BM25 ranking, source locations, and stale-content rejection |
 | Plans | Validated dependency DAG, bounded `asyncio` concurrency, dependency-result handoff, failure cancellation, and read-only Agent workers |
-| Platform operations | DNS/TCP/HTTP diagnostics, FlowTrail `GET /api/runs`, and a read-only POSIX world-writable-file audit |
+| Platform operations | DNS/TCP/HTTP diagnostics, authenticated FlowTrail identity/quota/runs/details/event replay, and a read-only POSIX world-writable-file audit |
 
 ## Run the included examples
 
@@ -47,7 +47,7 @@ paicli sessions --workspace examples/codebase
 paicli audit --workspace examples/codebase
 ```
 
-Run `index` before searching. Indexing rebuilds the local index; changed or deleted files are excluded from search results until the next rebuild. Python functions/classes use AST boundaries, with large blocks split into 100-line windows. Other supported text files use line windows. Retrieval is lexical and needs no embedding model.
+Run `index` before searching. Indexing rebuilds the local index; changed or deleted files are excluded from search results until the next rebuild. Python functions/classes use AST boundaries, retaining decorators and nested locations. Uncovered module code, including imports and constants, is also indexed. Blocks use at most 100 source lines. JSX, MJS, CJS, CSS, HTML and other supported text files use line windows. Retrieval is lexical and needs no embedding model.
 
 The default provider is `scripted`, which requires `--script` or a script for each plan task. It never silently replaces a failed remote model. All successful commands emit JSON; `--json` is accepted explicitly. JSON output uses ASCII-safe Unicode escapes for locale-independent pipes; parsing restores the original Unicode text. Use `paicli <command> --help` for options.
 
@@ -71,12 +71,29 @@ paicli agent "Inspect refund idempotency" --workspace examples/codebase --provid
 
 export FLOWTRAIL_API_TOKEN="<your-issued-access-token>"
 paicli doctor http://127.0.0.1:8000/healthz
+paicli platform me --base-url http://127.0.0.1:8000
+paicli platform quota --base-url http://127.0.0.1:8000
 paicli platform runs --base-url http://127.0.0.1:8000
+paicli platform run RUN_ID --base-url http://127.0.0.1:8000
+paicli platform events RUN_ID --after 3 --base-url http://127.0.0.1:8000
 ```
 
 In PowerShell, set variables with `$env:OPENAI_API_KEY = "<your-api-key>"` and `$env:FLOWTRAIL_API_TOKEN = "<your-issued-access-token>"` instead of `export`.
 
-`platform runs` sends `Authorization: Bearer …` to `GET /api/runs`; it does not print the token. Supply an access token issued by your FlowTrail instance. `doctor` independently reports DNS, TCP, and HTTP checks, using `/healthz` by default. Credentialed remote endpoints require HTTPS; loopback HTTP is supported for local development. Redirects are not followed. HTTP errors omit response bodies and credentials.
+The five platform commands send `Authorization: Bearer …` to the corresponding FlowTrail read-only API and do not print the token. `events` fetches history with `follow=false`, sends `Last-Event-ID` for `--after`, and emits `{events, cursor}` JSON. Identity, quota arithmetic, run/node structure, and SSE event IDs are validated. Invalid, out-of-order, incomplete, oversized, or over-4,096-event responses fail explicitly rather than return partial success. Responses are limited to 1 MiB, with a default total request deadline of 10 seconds, including streamed chunks.
+
+Supply an unexpired access token issued by your FlowTrail instance. Expired/revoked credentials return 401; permission errors and foreign resource IDs remain failures. `doctor` independently reports DNS, TCP, and HTTP checks, using `/healthz` by default. Credentialed remote endpoints require HTTPS; loopback HTTP is supported for local development. Redirects are not followed. HTTP errors omit response bodies and credentials.
+
+### Reproduce the two-project integration
+
+Clone `flowtrail-python` beside this repository and install both projects into one Python environment:
+
+```sh
+python -m pip install -e . -e ../flowtrail-python
+python scripts/integration_flowtrail.py --flowtrail-src ../flowtrail-python/src
+```
+
+The script starts a real local FlowTrail process with a temporary database and random temporary tokens. It exercises all five CLI queries, object quota changes, idempotent submission, cursor replay, invalid credentials, viewer restrictions and cross-tenant reads. The workflow contains explicitly labeled mock inference. It prints only a check summary and cleans up the process and database. This is a separate integration gate, in addition to the standalone unit suite.
 
 Remote models receive the supplied conversation and tool results, which can include workspace source text. Session messages are stored locally in plaintext at `.paicli/state.sqlite3`; that directory is ignored by Git.
 
@@ -98,7 +115,7 @@ python -m unittest discover -s tests -v
 paicli demo --json
 ```
 
-Local verification from **2026-10-22 to 2026-10-23**, Windows / Python 3.12.14: **42 tests passed, 0 failed, 0 skipped**, including a full run with `PYTHONIOENCODING=cp1252` and UTF-8 mode disabled. Coverage includes traversal and link boundaries, exact/denied/expired approvals, model errors and tool messages, context budgets, stale indexes, DAG validation/concurrency/cancellation, loopback diagnostics, API request protocols, and subprocess Unicode preservation under cp1252/ASCII output encodings. The installed CLI and example commands were also exercised. Remote model behavior and Docker builds were not verified locally. CI is configured for Ubuntu/Windows with Python 3.11/3.12; configuration is not a claim that those remote runs have passed.
+Local verification on **2026-10-23**, Windows / Python 3.12.14: **64 tests passed, 0 failed, 0 skipped**. Coverage includes source-line indexing and module/JSX retrieval, stale-content filtering, platform response schemas, SSE cursor/integrity/limits/deadlines and authentication control errors, real local HTTP CLI subprocesses, traversal/link boundaries, write approvals, Agent context budgets, DAG concurrency/cancellation, and Unicode output under cp1252/ASCII subprocess encodings. The real FlowTrail integration script also passed. Remote model behavior and Docker builds were not verified locally. CI covers Ubuntu/Windows with Python 3.11/3.12; see the actual workflow runs for remote results.
 
 `src/paicli/` contains the CLI, Agent, tools, storage, index, planner, and API adapters. `tests/` contains the standard-library test suite; `examples/` contains inspectable fixtures and scripted responses. A Dockerfile is included for subsequent container validation.
 

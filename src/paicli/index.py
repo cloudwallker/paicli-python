@@ -12,7 +12,8 @@ from .workspace import Workspace
 
 
 MAX_FILE_BYTES = 512 * 1024
-INDEX_SUFFIXES = {".py", ".txt", ".md", ".toml", ".yaml", ".yml", ".json", ".sh", ".js", ".ts", ".tsx", ".java"}
+INDEX_SUFFIXES = {".py", ".txt", ".md", ".toml", ".yaml", ".yml", ".json", ".sh",
+                  ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".css", ".html", ".java"}
 
 
 def digest_file(path: Path) -> str:
@@ -20,10 +21,12 @@ def digest_file(path: Path) -> str:
 
 
 def chunks_for(path: str, content: str) -> list[tuple[str, int, int, str]]:
-    lines = content.splitlines(keepends=True)
+    # Python AST line numbers count CR/LF source lines. Unicode separators can
+    # appear inside string literals and must not shift the reported ranges.
+    lines = [line for line in re.findall(r"[^\r\n]*(?:\r\n|\r|\n|$)", content) if line]
     if not lines:
         return []
-    if path.endswith(".py"):
+    if Path(path).suffix.lower() == ".py":
         try:
             tree = ast.parse(content)
         except SyntaxError:
@@ -32,15 +35,30 @@ def chunks_for(path: str, content: str) -> list[tuple[str, int, int, str]]:
             nodes = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]
             if nodes:
                 result = []
+                covered = [False] * len(lines)
                 for node in sorted(nodes, key=lambda n: (n.lineno, n.end_lineno)):
                     start = min([node.lineno] + [d.lineno for d in node.decorator_list])
                     end = node.end_lineno or node.lineno
+                    covered[start - 1:end] = [True] * (end - start + 1)
                     # Large functions/classes retain line ranges but are split into
                     # bounded windows. Both class and method chunks may overlap.
                     for offset in range(start - 1, end, 100):
                         stop = min(offset + 100, end)
                         result.append((node.name, offset + 1, stop, "".join(lines[offset:stop])))
-                return result
+                # Definitions do not cover module imports, constants, docstrings,
+                # comments, or executable top-level statements. Index every gap
+                # without folding unrelated module lines into a named symbol.
+                offset = 0
+                while offset < len(lines):
+                    if covered[offset]:
+                        offset += 1
+                        continue
+                    stop = offset
+                    while stop < len(lines) and not covered[stop] and stop - offset < 100:
+                        stop += 1
+                    result.append(("<module>", offset + 1, stop, "".join(lines[offset:stop])))
+                    offset = stop
+                return sorted(result, key=lambda chunk: (chunk[1], chunk[2], chunk[0]))
     return [(Path(path).stem, i + 1, min(i + 100, len(lines)), "".join(lines[i:i + 100])) for i in range(0, len(lines), 100)]
 
 
