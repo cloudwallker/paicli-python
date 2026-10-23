@@ -1,0 +1,715 @@
+{
+  "dataset_name": "paicli_source_holdout_20261023",
+  "dataset_version": 1,
+  "dataset_file": "holdout.json",
+  "dataset_sha256": "b91b9e604324d612ff87bba1846e3647ede7dc2b6f19f3557a601fff22c7d53f",
+  "generated_at_utc": "2026-10-23T08:19:54Z",
+  "status": "frozen_candidate",
+  "status_note": "本次生成后固定为首次评测候选题；尚未运行任何检索或评测。首次评测前仅向父代理交付路径、题目数量及分布、文件 SHA-256。评测结果不得用于追溯调整本版本题目或证据。",
+  "annotation_origin": {
+    "annotator": "独立于实现代理的源码标注代理 /root/retrieval_holdout",
+    "independent_agent_constructed": true,
+    "independent_human_annotation": false,
+    "read_source_before_annotation": true,
+    "read_retrieval_implementation": false,
+    "read_existing_case_dataset": false,
+    "observed_retrieval_outputs": false,
+    "observed_implementation_agent_messages": false,
+    "executed_retrieval": false,
+    "evaluation_scope": "同一项目的指定九文件完整小语料，非跨项目泛化评测，非官方 benchmark。",
+    "governance_read": "仅额外读取项目根目录 AGENTS.md 以确认中文及交付约定；治理文件未计入语料。",
+    "limitations": [
+      "代理根据源码编写问题及相关片段，缺少独立人工双标或一致性测量。",
+      "未读取原题库，也未做旧题内容重合比对，以维持独立构造；不声称与旧题绝对无语义重合。",
+      "无答案仅指所列九文件不存在所问的具体能力实现，不推断未纳入的仓库文件、服务端或第三方组件。",
+      "尚未以实际检索结果检验题目难度或检索指标。"
+    ]
+  },
+  "source_manifest": [
+    {
+      "path": "src/paicli/workspace.py",
+      "sha256": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+      "lines": 104
+    },
+    {
+      "path": "src/paicli/storage.py",
+      "sha256": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+      "lines": 93
+    },
+    {
+      "path": "src/paicli/agent.py",
+      "sha256": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+      "lines": 137
+    },
+    {
+      "path": "src/paicli/plan.py",
+      "sha256": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+      "lines": 83
+    },
+    {
+      "path": "src/paicli/index.py",
+      "sha256": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+      "lines": 133
+    },
+    {
+      "path": "src/paicli/models.py",
+      "sha256": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+      "lines": 81
+    },
+    {
+      "path": "src/paicli/platform.py",
+      "sha256": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+      "lines": 275
+    },
+    {
+      "path": "src/paicli/errors.py",
+      "sha256": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+      "lines": 29
+    },
+    {
+      "path": "src/paicli/__init__.py",
+      "sha256": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589",
+      "lines": 3
+    }
+  ],
+  "source_hash_verification": "保存数据集后重新核对九文件 SHA-256，全部一致。",
+  "distribution": {
+    "total": 24,
+    "answerable": 16,
+    "unanswerable": 8,
+    "answerable_languages": {
+      "zh": 12,
+      "en": 4
+    },
+    "unanswerable_languages": {
+      "zh": 4,
+      "en": 4
+    },
+    "total_languages": {
+      "zh": 16,
+      "en": 8
+    }
+  },
+  "annotation_policy": {
+    "answerable": "必要证据采用一至三个源码行区间，覆盖实际关键分支；不以整类作为默认标签。",
+    "unanswerable": "问题要求定位一种具体能力的现有实现。完整读取语料后找不到此能力时标无答案，relevant_spans 为空；审计中的相邻代码只解释易混淆边界，不能当作正相关证据。",
+    "nearby_source_role": "observed_nearby_source 仅用于解释否定判断，禁止并入留出集 relevant_spans。",
+    "freeze_rule": "若源码快照变化，应记录评测无效或另建版本；禁止依据首次检索失败事后扩张证据范围。",
+    "query_style": "可回答题含自然口语、跨函数或跨文件联系、边界条件；避免把问题写成方法名列表。",
+    "schema_validation": "检查顶层和题目字段集合、24 个唯一题号、真假值类型、相关片段数量与所有行号上下界。"
+  },
+  "cases": [
+    {
+      "id": "h01",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "设备名集合含 nul；路径组件会先按第一个点截取并去尾空格识别保留名，另有组件末尾空格或点检查，两类均抛 PolicyError。",
+      "definitions": [
+        "workspace.DEVICE_NAMES",
+        "workspace.Workspace.resolve"
+      ],
+      "boundary": "这是应用层路径策略；不据此声称操作系统本身无法创建所有此类名字。",
+      "answerable": true,
+      "category": "workspace_windows_name_boundaries",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 18,
+          "end_line": 18
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 48,
+          "end_line": 55
+        }
+      ]
+    },
+    {
+      "id": "h02",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "遍历对子目录先调用路径校验，失败的目录不进入 safe_dirs，随后原位替换 dirs 以剪枝；文件候选也先校验，在再遇到一个合格文件而已有数量达到 limit 时返回排序结果和 True，正常结束返回排序结果和 False。",
+      "definitions": [
+        "workspace.Workspace.files",
+        "workspace.Workspace.resolve"
+      ],
+      "boundary": "截断是遇到超额的合格文件才报告；不能简化为最终数量等于 limit 就一定截断。",
+      "answerable": true,
+      "category": "workspace_walk_pruning_and_limit",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 71,
+          "end_line": 92
+        }
+      ]
+    },
+    {
+      "id": "h03",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "普通工具路径检查拒绝 PROTECTED 内的 .paicli；受信任的状态路径方法直接在根目录下创建 .paicli 并选择 state.sqlite3，对数据库及 -journal、-wal、-shm 边车逐一拒绝符号链接、重解析点和硬链接。",
+      "definitions": [
+        "workspace.PROTECTED",
+        "workspace.Workspace.resolve",
+        "workspace.Workspace.state_file"
+      ],
+      "boundary": "状态目录本身检查符号链接或重解析点，硬链接检查施加于数据库及边车文件；不能把这一策略说成完整操作系统隔离。",
+      "answerable": true,
+      "category": "workspace_private_state_sidecars",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 16,
+          "end_line": 17
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 48,
+          "end_line": 53
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 94,
+          "end_line": 104
+        }
+      ]
+    },
+    {
+      "id": "h04",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "保留所有 system 消息，按 user 消息开启新轮并收集后续消息；若系统加最新整轮已超预算立即抛 BudgetExceeded；否则逐轮删除旧轮，尝试添加确定性摘录，末尾必要时只返回系统加最新轮。",
+      "definitions": [
+        "storage.compact_context",
+        "storage._size"
+      ],
+      "boundary": "预算是 JSON 序列化字符数而非模型 token 数；不切断最新轮，也不是语义总结。",
+      "answerable": true,
+      "category": "context_whole_turn_budget_boundary",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 61,
+          "end_line": 78
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 79,
+          "end_line": 93
+        }
+      ]
+    },
+    {
+      "id": "h05",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "messages.seq 为 AUTOINCREMENT 主键；会话列表按 GROUP BY session 聚合 COUNT(*)、MAX(created_at)，但排序表达式明确使用 MAX(seq) DESC。",
+      "definitions": [
+        "storage.Store.__init__",
+        "storage.Store.sessions"
+      ],
+      "boundary": "updated_at 返回值来自时间列，列表顺序来自序号，不能混为一谈。",
+      "answerable": true,
+      "category": "session_recency_and_count",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 20,
+          "end_line": 26
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 49,
+          "end_line": 51
+        }
+      ]
+    },
+    {
+      "id": "h06",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "从已存历史收集 assistant 工具调用并用已存在的 tool 结果抵消未完成项；对残留项写入 interrupted_before_result 的失败结果并持久化，明确指出副作用未知和重试前需检查，随后加入新用户目标。该修复段没有调用工具执行函数。",
+      "definitions": [
+        "agent.Agent.run"
+      ],
+      "boundary": "这里只修复消息协议中的缺失结果，不保证副作用回滚或自动重放；新一轮模型之后仍可能提出新的工具调用。",
+      "answerable": true,
+      "category": "agent_interrupted_tool_repair",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 82,
+          "end_line": 103
+        }
+      ]
+    },
+    {
+      "id": "h07",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "JSON object_pairs_hook 指向检查重复字段的 _unique_object，重复键触发 ValueError；回复校验捕获该异常并转换为 ModelError，因此不是保留后值的默认 JSON 行为。",
+      "definitions": [
+        "agent._unique_object",
+        "agent.validate_reply"
+      ],
+      "boundary": "检查发生在工具参数字符串解析阶段；不得外推为所有平台 JSON 解析都拒绝重复键。",
+      "answerable": true,
+      "category": "agent_duplicate_json_properties",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 34,
+          "end_line": 40
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 53,
+          "end_line": 64
+        }
+      ]
+    },
+    {
+      "id": "h08",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "BudgetExceeded 虽然继承 PaiCLIError，却先于广义 PaiCLIError 分支捕获并重抛；其他 PaiCLIError 形成含异常类名及消息的失败结果，OSError 形成固定 FileIOError 结果。未逃逸的结果进入历史、存储和 trace；预算失败中断循环。",
+      "definitions": [
+        "errors.PaiCLIError",
+        "errors.BudgetExceeded",
+        "agent.Agent.run"
+      ],
+      "boundary": "不是所有 Python Exception 都被转为可继续的工具失败；题目特指 PaiCLIError、OSError 与 BudgetExceeded 三种路径。",
+      "answerable": true,
+      "category": "agent_tool_failure_and_budget_escape",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 119,
+          "end_line": 137
+        },
+        {
+          "path": "src/paicli/errors.py",
+          "start_line": 4,
+          "end_line": 17
+        }
+      ]
+    },
+    {
+      "id": "h09",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "先建立任务依赖集合并比较是否引用 seen 外的编号；再反复找依赖均已完成的未完成节点，没有 ready 而尚有未完成节点即报环。执行入口先调用 validate_plan。",
+      "definitions": [
+        "plan.validate_plan",
+        "plan.PlanRunner.run"
+      ],
+      "boundary": "这是启动前的图验证；不依赖实际 worker 执行结果来识别依赖缺失或环。",
+      "answerable": true,
+      "category": "plan_missing_dependency_and_cycle",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 31,
+          "end_line": 40
+        },
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 51,
+          "end_line": 53
+        }
+      ]
+    },
+    {
+      "id": "h10",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "运行器逐项启动依赖已在 results 的任务，只把该任务声明的依赖结果传给 worker；以 FIRST_COMPLETED 等待且释放完成任务的并发槽，因此甲完成后可启动只依赖甲的丙；任一 job.result 失败抛 PlanError，finally 取消并等待其余运行任务。",
+      "definitions": [
+        "plan.PlanRunner.run"
+      ],
+      "boundary": "题设甲乙已并行运行意味着有至少两个并发槽；丙启动仍须有空槽。不包含失败重试或持久化恢复。",
+      "answerable": true,
+      "category": "plan_dependency_release_and_cancellation",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 58,
+          "end_line": 75
+        },
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 79,
+          "end_line": 83
+        }
+      ]
+    },
+    {
+      "id": "h11",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "源码行通过只识别 CR/LF 的正则拆分，避免字符串内 Unicode 分隔符改变 AST 行号；定义起点取本体及装饰器的最小行号，每个定义随后按最多一百行窗口切分。",
+      "definitions": [
+        "index.chunks_for"
+      ],
+      "boundary": "只描述切块和源码行号语义，没有读取或利用待评测检索策略。",
+      "answerable": true,
+      "category": "source_chunk_line_and_decorator_boundaries",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 23,
+          "end_line": 47
+        }
+      ]
+    },
+    {
+      "id": "h12",
+      "language": "zh",
+      "judgment": "可回答",
+      "source_reason": "Python 可解析且存在定义时追踪定义覆盖范围并为每个未覆盖间隙建立 <module> 块；不存在定义或 SyntaxError 导致树为空时，落到文件末尾的一百行通用分块返回。",
+      "definitions": [
+        "index.chunks_for"
+      ],
+      "boundary": "代码块生成不要求文件可执行；语法错误触发文本分块而非拒绝全部文件。",
+      "answerable": true,
+      "category": "source_chunk_module_gaps_and_fallback",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 29,
+          "end_line": 38
+        },
+        {
+          "path": "src/paicli/index.py",
+          "start_line": 48,
+          "end_line": 62
+        }
+      ]
+    },
+    {
+      "id": "h13",
+      "language": "en",
+      "judgment": "可回答",
+      "source_reason": "构造时深拷贝回复列表，每次调用再深拷贝传入消息到 requests，避免调用方后续变更影响保存快照；回复耗尽抛 ModelError 并明确没有隐式回退。",
+      "definitions": [
+        "models.ScriptedModel.__init__",
+        "models.ScriptedModel.complete"
+      ],
+      "boundary": "只声明构造输入和请求快照的深拷贝，不声称返回给调用方的每条回复又被单独深拷贝。",
+      "answerable": true,
+      "category": "offline_model_copy_and_exhaustion",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 26,
+          "end_line": 37
+        }
+      ]
+    },
+    {
+      "id": "h14",
+      "language": "en",
+      "judgment": "可回答",
+      "source_reason": "公共 URL 校验禁止 HTTP(S) 之外协议及 userinfo/query/fragment，远程明文 HTTP 被拒绝，localhost、127.0.0.1、::1 可使用 HTTP；模型及平台构造器都调用该函数，平台可传入自身异常类型。",
+      "definitions": [
+        "models.validate_url",
+        "models.OpenAIModel.__init__",
+        "platform.PlatformClient.__init__"
+      ],
+      "boundary": "允许的是准确匹配的三个 loopback 主机字符串，不是任意解析到回环地址的域名。",
+      "answerable": true,
+      "category": "shared_endpoint_transport_policy",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 13,
+          "end_line": 23
+        },
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 40,
+          "end_line": 44
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 132,
+          "end_line": 138
+        }
+      ]
+    },
+    {
+      "id": "h15",
+      "language": "en",
+      "judgment": "可回答",
+      "source_reason": "事件解析明确拒绝损坏重放的成功部分结果；dispatch 在处理普通记录前检测 error 事件，authentication_invalid 转成固定的重新认证错误，其余错误转成通用错误，不回显上游细节。异常使此前已收集事件不能作为成功返回。",
+      "definitions": [
+        "platform._events",
+        "platform._events.dispatch"
+      ],
+      "boundary": "发生 HTTP 200 不代表整段 SSE 历史有效；既有游标推进只在函数内部，异常时不返回新的成功游标。",
+      "answerable": true,
+      "category": "platform_sse_midstream_auth_failure",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 61,
+          "end_line": 66
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 75,
+          "end_line": 89
+        }
+      ]
+    },
+    {
+      "id": "h16",
+      "language": "en",
+      "judgment": "可回答",
+      "source_reason": "DNS 失败后设置另外两阶段为跳过并立即返回；TCP 失败只填 tcp.error，没有 return，代码继续执行独立 HTTP GET 探测。",
+      "definitions": [
+        "platform.doctor"
+      ],
+      "boundary": "TCP 阶段失败不自动推出 HTTP 失败，也不表明 HTTP 会复用该 TCP 连接。",
+      "answerable": true,
+      "category": "diagnostic_stage_failure_semantics",
+      "relevant_spans": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 254,
+          "end_line": 275
+        }
+      ]
+    },
+    {
+      "id": "h17",
+      "language": "zh",
+      "judgment": "无答案",
+      "source_reason": "完整审阅九个文件后未发现按保留天数删除历史、定时清理或启动后台过期任务的定义；Store 只有建表、追加、读取、汇总与关闭。",
+      "definitions": [
+        "storage.Store.__init__",
+        "storage.Store.append",
+        "storage.Store.messages",
+        "storage.Store.sessions",
+        "storage.Store.close"
+      ],
+      "boundary": "created_at 是记录时间，compact_context 只裁剪给模型的上下文列表，均不实现数据库历史过期清理。",
+      "answerable": false,
+      "category": "absent_session_retention_jobs",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 12,
+          "end_line": 54
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 61,
+          "end_line": 93
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h18",
+      "language": "zh",
+      "judgment": "无答案",
+      "source_reason": "状态库通过标准库 sqlite3.connect 打开；初始化只设权限和外键并建表，没有 SQLCipher 驱动、PRAGMA key、解密密钥接收或密钥轮换实现；其余八文件也没有该能力。",
+      "definitions": [
+        "storage.Store.__init__",
+        "workspace.Workspace.state_file"
+      ],
+      "boundary": "文件权限、私有路径和禁止访问密钥文件都不等于数据库内容加密；api_key 与 bearer token 也不是数据库密钥。",
+      "answerable": false,
+      "category": "absent_database_encryption_key_rotation",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 12,
+          "end_line": 37
+        },
+        {
+          "path": "src/paicli/workspace.py",
+          "start_line": 94,
+          "end_line": 104
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h19",
+      "language": "zh",
+      "judgment": "无答案",
+      "source_reason": "计划运行器在 worker 异常时直接抛 PlanError 并取消其余任务，没有重试队列、尝试次数或退避间隔配置；九文件中未见相应调度实现。",
+      "definitions": [
+        "plan.PlanRunner.__init__",
+        "plan.PlanRunner.run",
+        "plan.validate_plan"
+      ],
+      "boundary": "平台响应中的 attempt 字段仅被读取和校验；不能当作本地计划器具备自动重试的证据。",
+      "answerable": false,
+      "category": "absent_plan_backoff_retries",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 43,
+          "end_line": 83
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 217,
+          "end_line": 232
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h20",
+      "language": "zh",
+      "judgment": "无答案",
+      "source_reason": "主循环 trace 仅追加工具名称和 ok 布尔值，并在返回结果里携带；九文件没有 OpenTelemetry、OTLP exporter、span 生命周期或采样率配置。",
+      "definitions": [
+        "agent.Agent.run"
+      ],
+      "boundary": "普通执行 trace 列表不是分布式追踪 span，SQLite 消息落盘也不是向 Collector 上报。",
+      "answerable": false,
+      "category": "absent_distributed_trace_export",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 104,
+          "end_line": 118
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 119,
+          "end_line": 137
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h21",
+      "language": "en",
+      "judgment": "无答案",
+      "source_reason": "平台客户端接收已给定的 bearer_token，模型适配器接收已给定 api_key；九文件中没有设备授权请求、轮询 token endpoint、浏览器 verification URL 或 refresh token 存储。",
+      "definitions": [
+        "platform.PlatformClient.__init__",
+        "platform.PlatformClient._download",
+        "models.OpenAIModel.__init__",
+        "models.OpenAIModel.complete"
+      ],
+      "boundary": "认证失败时提示再次认证不代表实现了 OAuth 设备码流程；此结论只覆盖列明的小语料。",
+      "answerable": false,
+      "category": "absent_oauth_device_authorization",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 132,
+          "end_line": 173
+        },
+        {
+          "path": "src/paicli/models.py",
+          "start_line": 40,
+          "end_line": 81
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h22",
+      "language": "en",
+      "judgment": "无答案",
+      "source_reason": "计划 pending、running、results 均在单次 run 内创建，只存于内存，运行器没有 Store 或 checkpoint 文件依赖；九文件没有写入和加载任务检查点的流程。",
+      "definitions": [
+        "plan.PlanRunner.run",
+        "storage.Store.__init__",
+        "agent.Agent.run"
+      ],
+      "boundary": "Agent 的会话修复是为缺失工具结果补失败消息，不是计划 DAG 的跨进程恢复。",
+      "answerable": false,
+      "category": "absent_durable_plan_resume",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 51,
+          "end_line": 83
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 82,
+          "end_line": 103
+        },
+        {
+          "path": "src/paicli/storage.py",
+          "start_line": 19,
+          "end_line": 37
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h23",
+      "language": "en",
+      "judgment": "无答案",
+      "source_reason": "平台下载辅助函数只取有大小上限的 HTTP 字节交给 JSON 或 SSE 解码，公开读接口返回字典；九文件没有工作流产物下载到文件、签名验证或 Range/断点续传状态。",
+      "definitions": [
+        "platform.PlatformClient._download",
+        "platform.PlatformClient.run",
+        "platform.PlatformClient.events"
+      ],
+      "boundary": "run 节点 output 字段和通用 HTTP 下载字节都不满足产物传输、签名验证、断点续传这项具体能力。",
+      "answerable": false,
+      "category": "absent_artifact_transfer_and_signature_verification",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 146,
+          "end_line": 173
+        },
+        {
+          "path": "src/paicli/platform.py",
+          "start_line": 198,
+          "end_line": 238
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    },
+    {
+      "id": "h24",
+      "language": "en",
+      "judgment": "无答案",
+      "source_reason": "计划器只有依赖、并发及整次执行超时，Agent 只用 monotonic 截止时间；完整九文件未出现周期日历表达式、时区数据库或夏令时重叠选择算法。",
+      "definitions": [
+        "plan.PlanRunner.__init__",
+        "plan.PlanRunner.run",
+        "agent.Agent.run"
+      ],
+      "boundary": "asyncio 超时和 CURRENT_TIMESTAMP 记账不构成日历调度器；没有假定仓库其他未纳入文件也缺少此功能。",
+      "answerable": false,
+      "category": "absent_calendar_timezone_scheduler",
+      "relevant_spans": [],
+      "observed_nearby_source": [
+        {
+          "path": "src/paicli/plan.py",
+          "start_line": 43,
+          "end_line": 83
+        },
+        {
+          "path": "src/paicli/agent.py",
+          "start_line": 104,
+          "end_line": 111
+        }
+      ],
+      "negative_scope": "已完整读取 source_manifest 中九文件；不存在所要求的具体能力实现。"
+    }
+  ]
+}

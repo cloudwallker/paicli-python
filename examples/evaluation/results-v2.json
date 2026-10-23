@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "measured_on": "2026-10-23",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.14",
+    "unicode_version": "15.0.0"
+  },
+  "dataset": {
+    "path": "examples/evaluation/holdout-v2.json",
+    "name": "paicli-third-round-independent-blind-v2-20261023",
+    "file_sha256": "89683a129407c11e708652c567b768e20be84eb2c106848cdf67afd86a042f92",
+    "normalized_dataset_sha256": "7ad54d8f39970400cd78a6ce0d8368a2f5f8c47deef64e680e5106d4695edb66",
+    "annotation_audit_path": "examples/evaluation/holdout-v2-annotations.json",
+    "annotation_audit_sha256": "a7111724e84c8a8c5eb17fc8e201100f2970efa5d74619325d39ab5775fb868e",
+    "total_cases": 24,
+    "answerable_cases": 16,
+    "unanswerable_cases": 8,
+    "chinese_queries": 16,
+    "english_queries": 8,
+    "source_files": 9,
+    "provenance": "Separate source-reading agent; no independent human annotation; same repository, not cross-project.",
+    "first_look": "Implementation and targets frozen before first evaluation; no tuning against this dataset. Older 30-case and 24-case sets were development-visible. This new set becomes development-visible for later iterations."
+  },
+  "freeze": {
+    "frozen_at_utc": "2026-10-23T09:18:07.693271+00:00",
+    "source_sha256": {
+      "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589",
+      "src/paicli/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+      "src/paicli/cli.py": "22b564c04d6c3857f87e0fd94b9ab5f9f03a9b720e7bb94bad2f7bf38977cfd8",
+      "src/paicli/codegraph.py": "eea06737c9ee3bbcc00911fbe4a90503f6168819366ef01d8468b710337dcca1",
+      "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+      "src/paicli/evaluation.py": "733be03dd685ce81ed074b8f806d88da972c8a2d746a1e8148fe25847cd58848",
+      "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+      "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+      "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+      "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+      "src/paicli/retrieval.py": "4733054effcbee740746ca32e84ab451a284b1f1e948ba58c34e692c9142868f",
+      "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+      "src/paicli/tools.py": "f96e9e73656d87da310245096a6f3128918b7d5408d2fce81b6977482c0fb71c",
+      "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529"
+    },
+    "v1_retrieval_source_sha256": "1ae08de2837897322920bff6848e63dc6b0277e0430a71a51ea250d7327b2ec3",
+    "profiles": {
+      "v1": {
+        "algorithm_version": "bilingual-concept-bm25-v1",
+        "profile_hash": "993e84c02250cb19e6ce886ba983df7095008a6ec4497e29f236988362f9ad96",
+        "snapshot_hash": "be00db38b700c2e8cf44fb66bb947ddb84e6f4554027b7527e73713a272c3a50"
+      },
+      "v2": {
+        "algorithm_version": "bilingual-concept-bm25-v2",
+        "profile_hash": "f0aef8535c5b807f2d0d4fccc7c4b56638b09d67ec68acbcf81065c756948ff6",
+        "snapshot_hash": "be00db38b700c2e8cf44fb66bb947ddb84e6f4554027b7527e73713a272c3a50"
+      }
+    },
+    "gate_threshold": 0.6,
+    "short_query_max_distinct_non_stopword_concepts": 3
+  },
+  "k": 5,
+  "metrics": {
+    "v1": {
+      "bm25": {
+        "recall_at_k": 0.625,
+        "mrr_at_k": 0.6145833333333334,
+        "answerable_accepted_count": 12,
+        "answerable_abstained_count": 4,
+        "answerable_false_abstention_rate": 0.25,
+        "false_retrieval_count": 4,
+        "false_retrieval_rate": 0.5
+      },
+      "graph_expand": {
+        "recall_at_k": 0.625,
+        "mrr_at_k": 0.5958333333333333,
+        "answerable_accepted_count": 12,
+        "answerable_abstained_count": 4,
+        "answerable_false_abstention_rate": 0.25,
+        "false_retrieval_count": 4,
+        "false_retrieval_rate": 0.5
+      },
+      "code_aware": {
+        "recall_at_k": 0.9375,
+        "mrr_at_k": 0.7864583333333334,
+        "answerable_accepted_count": 16,
+        "answerable_abstained_count": 0,
+        "answerable_false_abstention_rate": 0.0,
+        "false_retrieval_count": 8,
+        "false_retrieval_rate": 1.0
+      },
+      "code_aware_gated": {
+        "recall_at_k": 0.0,
+        "mrr_at_k": 0.0,
+        "answerable_accepted_count": 0,
+        "answerable_abstained_count": 16,
+        "answerable_false_abstention_rate": 1.0,
+        "false_retrieval_count": 0,
+        "false_retrieval_rate": 0.0
+      }
+    },
+    "v2": {
+      "bm25": {
+        "recall_at_k": 0.625,
+        "mrr_at_k": 0.6145833333333334,
+        "answerable_accepted_count": 12,
+        "answerable_abstained_count": 4,
+        "answerable_false_abstention_rate": 0.25,
+        "false_retrieval_count": 4,
+        "false_retrieval_rate": 0.5
+      },
+      "graph_expand": {
+        "recall_at_k": 0.625,
+        "mrr_at_k": 0.5958333333333333,
+        "answerable_accepted_count": 12,
+        "answerable_abstained_count": 4,
+        "answerable_false_abstention_rate": 0.25,
+        "false_retrieval_count": 4,
+        "false_retrieval_rate": 0.5
+      },
+      "code_aware": {
+        "recall_at_k": 0.9375,
+        "mrr_at_k": 0.7864583333333334,
+        "answerable_accepted_count": 16,
+        "answerable_abstained_count": 0,
+        "answerable_false_abstention_rate": 0.0,
+        "false_retrieval_count": 8,
+        "false_retrieval_rate": 1.0
+      },
+      "code_aware_gated": {
+        "recall_at_k": 0.75,
+        "mrr_at_k": 0.7291666666666666,
+        "answerable_accepted_count": 14,
+        "answerable_abstained_count": 2,
+        "answerable_false_abstention_rate": 0.125,
+        "false_retrieval_count": 3,
+        "false_retrieval_rate": 0.375
+      }
+    }
+  },
+  "predefined_usability_targets": {
+    "answerable_false_abstention_rate": {
+      "maximum": 0.25,
+      "actual": 0.125,
+      "passed": true
+    },
+    "gated_to_raw_recall_ratio": {
+      "minimum": 0.8,
+      "actual": 0.8,
+      "passed": true
+    },
+    "both_passed": true,
+    "reliable_abstention_established": false,
+    "negative_result": "V2 returned snippets for 3 of 8 unanswerable cases; frozen v1 rejected all 16 answerable cases and all 8 negatives."
+  },
+  "verification": {
+    "unit_tests": {
+      "passed": 157,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 17.813
+    },
+    "offline_demo": "passed",
+    "flowtrail_integration": "passed against the local sibling project, real local process and temporary database, explicit mock inference",
+    "public_model_answer_quality": "not_evaluated",
+    "docker_build": "not_validated"
+  },
+  "limitations": [
+    "Recall/MRR average all answerable cases, assigning zero to gate rejections; evidence uses annotated span overlap and is not answer correctness.",
+    "False retrieval means snippets were returned for an unanswerable query, not model hallucination.",
+    "The 0.6 lexical threshold is a heuristic, not a correctness probability. Soft prose can match adjacent functionality without supporting the requested behavior.",
+    "Anchors must match within the visible candidate window; naming variants and evidence split across windows can cause false abstention.",
+    "Small agent-annotated, same-project dataset; no independent human labels or cross-project generalization result.",
+    "Engineering contracts and the two usability targets pass; reliable abstention and semantic answer quality remain unestablished."
+  ]
+}

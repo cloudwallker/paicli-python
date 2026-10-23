@@ -30,6 +30,10 @@ SCHEMAS = {
     "read_file": {"description": "Read a UTF-8 workspace file with source lines.", "required": ["path"], "properties": {"path": {"type": "string"}, "start_line": {"type": "integer", "minimum": 1}, "end_line": {"type": "integer", "minimum": 1}}},
     "list_files": {"description": "List allowed workspace files; protected paths are excluded.", "required": [], "properties": {}},
     "search_code": {"description": "Search a previously built SQLite FTS5 lexical code index.", "required": ["query"], "properties": {"query": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 20}}},
+    "retrieve_code": {"description": "Retrieve Chinese/English code evidence with a lexical coverage gate. Insufficient evidence does not prove absence of an implementation.", "required": ["query"], "properties": {"query": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 20}}},
+    "find_symbol": {"description": "Find current Python definitions by name; conservative static analysis, without executing source.", "required": ["query"], "properties": {"query": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 20}}},
+    "callers": {"description": "Find resolved Python callers of an exact symbol id; dynamic calls remain unknown.", "required": ["symbol_id"], "properties": {"symbol_id": {"type": "string"}, "depth": {"type": "integer", "minimum": 1, "maximum": 3}, "limit": {"type": "integer", "minimum": 1, "maximum": 50}}},
+    "callees": {"description": "Find resolved Python callees of an exact symbol id and report unresolved calls separately.", "required": ["symbol_id"], "properties": {"symbol_id": {"type": "string"}, "depth": {"type": "integer", "minimum": 1, "maximum": 3}, "limit": {"type": "integer", "minimum": 1, "maximum": 50}}},
     "write_file": {"description": "Propose an exact UTF-8 replacement; a human must approve its fingerprint.", "required": ["path", "content"], "properties": {"path": {"type": "string"}, "content": {"type": "string"}}},
 }
 
@@ -85,6 +89,30 @@ class ToolRegistry:
             if self.store is None:
                 raise PolicyError("Code index is not initialized.")
             return {"hits": CodeIndex(self.workspace, self.store).search(arguments["query"], arguments.get("limit", 5))}
+        if name == "retrieve_code":
+            if self.store is None:
+                raise PolicyError("Code index is not initialized.")
+            from .retrieval import CodeRetriever
+            result = CodeRetriever(CodeIndex(self.workspace, self.store)).search(
+                arguments["query"], arguments.get("limit", 5))
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExceeded("Tool execution time budget exhausted during retrieval.")
+            # Rejected raw candidates belong only in an explicit evaluation report,
+            # never in the evidence supplied to an Agent or normal CLI caller.
+            return {key: result[key] for key in ("hits", "decision", "query", "profile")}
+        if name in {"find_symbol", "callers", "callees"}:
+            from .codegraph import CodeGraph
+            graph = CodeGraph(self.workspace)
+            summary = graph.build()
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExceeded("Tool execution time budget exhausted during source analysis.")
+            if name == "find_symbol":
+                result = graph.find_symbols(arguments["query"], arguments.get("limit", 20))
+            else:
+                result = graph.neighbors(arguments["symbol_id"], direction=name,
+                                         depth=arguments.get("depth", 1), limit=arguments.get("limit", 50))
+            return {**result, "diagnostics": summary["diagnostics"],
+                    "analysis_incomplete": bool(summary["truncated"] or summary["diagnostics"])}
         return self._write(arguments["path"], arguments["content"], deadline=deadline)
 
     def _write(self, name: str, content: str, *, deadline: float | None) -> dict:

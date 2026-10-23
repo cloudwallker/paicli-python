@@ -29,10 +29,11 @@ paicli demo --json
 | Capability | Implementation |
 | --- | --- |
 | Agent | ReAct-style request/tool/result loop; non-streaming OpenAI-compatible chat completions and an explicit scripted provider |
-| Tools | `read_file`, `list_files`, `search_code`, `write_file`; declared argument schemas and source-path checks |
+| Tools | `read_file`, `list_files`, `search_code`, `retrieve_code`, `find_symbol`, `callers`, `callees`, `write_file`; declared argument schemas and source-path checks |
 | Write approval | Full diff and a SHA-256 fingerprint bound to the relative path, previous content, and proposed content; exact interactive approval for every write |
 | Sessions | SQLite ledger of system, user, assistant, and tool messages; resumable session IDs and deterministic excerpts of older turns |
 | Code retrieval | Python AST chunks plus imports/constants/top-level code, JSX/MJS/CSS/HTML support, bounded windows, FTS5/BM25 ranking, source locations, and stale-content rejection |
+| Bilingual retrieval | Experimental Chinese/English concept matching, identifier splitting, deterministic lexical ranking, and explicit insufficient-evidence results |
 | Plans | Validated dependency DAG, bounded `asyncio` concurrency, dependency-result handoff, failure cancellation, and read-only Agent workers |
 | Platform operations | DNS/TCP/HTTP diagnostics, authenticated FlowTrail identity/quota/runs/details/event replay, and a read-only POSIX world-writable-file audit |
 
@@ -60,6 +61,63 @@ paicli agent "Propose a review note" --workspace examples/codebase --script exam
 The CLI displays the complete diff. Type `approve <full-64-character-fingerprint>` exactly as prompted. Without the flag, a TTY, or the exact response, the write is denied. If the target changes after preview or the deadline expires while waiting, it is not replaced. A successful write uses an atomic file replacement.
 
 The example's final sentence is scripted; inspect the tool `trace` and file contents to determine whether approval succeeded. An Agent can finish normally after reporting a denied tool, so exit code `0` alone does not prove that every tool succeeded.
+
+## Bilingual code retrieval
+
+**Experimental status: engineering contracts and this iteration's two predefined usability targets pass; reliable abstention is not established.** On a fresh 24-case held-out set evaluated after implementation freeze, the v2 gate reached Recall@5 **0.75** and MRR@5 **0.729167**, rejected **2/16** answerable cases, and returned snippets for **3/8** unanswerable cases. The frozen v1 gate, evaluated on the same new set, rejected all 16 answerable cases and returned no negative snippets. Raw bilingual Recall@5 was **0.9375** for both versions; v2 retained **80%** of raw recall. Raw scores describe candidates before filtering, rather than the actual `retrieve` result.
+
+```sh
+paicli index --workspace .
+paicli retrieve "压缩上下文" --workspace . --limit 5
+paicli retrieve "QuantumNimbus network protocol" --workspace .
+```
+
+`retrieve` and the read-only Agent tool `retrieve_code` use a fixed computing-term glossary, identifier splitting, and concept-level lexical scores. The v2 policy separates **required anchors** from **soft terms**: backtick identifiers, underscore/mixed-case identifiers, uppercase acronyms, non-initial unknown Titlecase words, and non-Han letter runs in mixed-Han queries become anchors. For short queries with at most **3 distinct non-stopword concepts**, every remaining unknown literal is also required. Other unknown prose remains ranking evidence without an individual veto. A candidate must contain every anchor and cover at least **0.6** of the known concepts plus anchors. With neither a known concept nor an anchor, the gate rejects the query.
+
+Anchor matching uses normalized exact identifiers or contiguous components within one identifier, without assembling separate identifiers; Han literal anchors use substring matching. Explicit anchors are recognized before stopword filtering, so `GET` remains required even though ordinary `get` is a stopword. Anchor-only queries such as `` `get` `` can create candidates; when no concept matches, their ranking sums per-anchor BM25 scores using binary frequency. The threshold is a heuristic, not a correctness probability. Results expose analyzed concepts, anchors, soft terms, matched/missing anchors, evidence coverage, rule/snapshot fingerprints, and an `accepted` or `insufficient_evidence` decision. Only accepted snippets reach the CLI/Agent; rejected raw candidates are retained solely for offline comparison.
+
+An insufficient result means this retriever found inadequate lexical evidence. It does not prove a feature is absent or force the whole Agent to abstain: `search_code` and other tools remain available. Unknown wording can reject answerable questions; soft prose can also accept related code without evidence for the requested behavior. Matching a name or comment does not establish semantic support. This is an experimental lexical baseline, with no embedding model. The original `search` behavior is unchanged.
+
+The snapshot accepts at most 10,000 indexed chunks and 8 MiB of chunk content, with a separate 8 MiB source budget and 512 KiB per file. Candidates contain complete source lines within an 8,000-character window; oversized single lines are omitted and counted. Source hashes and workspace path policy are rechecked. The tool constructs its snapshot per call; offline evaluation builds one snapshot and reports construction time separately. Local work uses cooperative deadline checks.
+
+## Cross-file analysis and offline evaluation
+
+```sh
+paicli graph --workspace . --query ToolRegistry
+paicli graph --workspace . --symbol SYMBOL_ID --direction callers --depth 1
+paicli evaluate examples/evaluation/cases.json --workspace . --k 5
+paicli evaluate examples/evaluation/holdout.json --workspace . --k 5
+paicli evaluate examples/evaluation/holdout-v2.json --workspace . --k 5
+```
+
+Use the exact returned symbol `id` as `SYMBOL_ID`. With no query, `graph` emits its snapshot. Agent and read-only workers also receive `find_symbol`, `callers`, and `callees`. Each query rebuilds the graph without writing session state and includes source locations/digests. Direct, alias and relative imports can form resolved edges. Uncertain instances, inheritance, shadowing and dynamic dispatch remain unknown. Inspect `diagnostics`, `truncated`, and `analysis_incomplete`; an empty result cannot prove absence.
+
+This is a static declaration graph, not source execution, full Python type inference, or runtime tracing. Limits: 5,000 safe files, 8 MiB total source, 10,000 symbols, 30,000 calls, 512 KiB and 100,000 AST nodes per file. Tool deadline checks are cooperative; local analysis is not forcibly preempted.
+
+`cases.json` contains **30 development cases: 26 answerable and 4 unanswerable**, pinned to ten source-file digests. The older `holdout.json` contains **24 cases: 16 answerable and 8 unanswerable**, including 16 Chinese questions; it was held out for the first v1 evaluation, with its annotation audit preserved in `holdout-annotations.json`. Both older sets were visible during v2 development and are now development data. The historical first v1 evaluation on the older set had raw Recall@5 0.90625 versus BM25 0.42708, but rejected all 16 positive cases; those scores are not the fresh v2 result.
+
+For this iteration, a separate source-reading agent prepared **`holdout-v2.json`: 24 new cases, 16 answerable and 8 unanswerable, with 16 Chinese and 8 English queries**, from nine stable source files. Implementation/rules and two usability targets were frozen before its first evaluation: answerable false-abstention rate at most **25%**, and gated recall at least **80%** of raw recall. V2 achieved **12.5%** and **80%**, respectively. These targets concern usability; the **3/8** negative false retrievals still prevent a reliable-abstention claim. The new annotation audit and compact measured summary are [holdout-v2-annotations.json](examples/evaluation/holdout-v2-annotations.json) and [results-v2.json](examples/evaluation/results-v2.json).
+
+| Method on the new v2 set | Recall@5 | MRR@5 | Answerable without snippets | Unanswerable returning snippets |
+| --- | --- | --- | --- | --- |
+| BM25 | 0.625 | 0.614583 | 4/16 | 4/8 |
+| Graph expansion | 0.625 | 0.595833 | 4/16 | 4/8 |
+| Raw bilingual, v1/v2 | 0.9375 | 0.786458 | 0/16 | 8/8 |
+| Frozen v1 gate | 0 | 0 | 16/16 | 0/8 |
+| V2 gate | 0.75 | 0.729167 | 2/16 | 3/8 |
+
+All datasets use agent-generated source annotations, without independent human annotation or cross-project evaluation. The new set is first-look evidence for this frozen implementation and will be development-visible in subsequent iterations. Only manifest source enters a temporary corpus; questions, labels, README files and old reports are excluded. Changed digests fail explicitly: review labels before refreshing the manifest.
+
+Reports compare `bm25`, `graph_expand` (resolved one-hop calls), `code_aware` (raw bilingual candidates), and `code_aware_gated` (accepted candidates). They retain each query, visible evidence, decision, analysis profile, Recall@k, MRR@k, false retrieval on unanswerable cases, and category metrics. Overall Recall/MRR include **all answerable cases**, counting rejected ones as zero; false-abstention rate and conditional recall among accepted answerable cases expose the tradeoff. Undefined denominators are `null`. Raw and gated bilingual results share one measured search; build times are separate. Span overlap measures retrieved evidence, not answer correctness; broad class/function labels can inflate coverage. Unanswerable false retrieval means snippets were returned, not model hallucination. Neither graph expansion nor the gate guarantees better ranking or answer quality.
+
+Answer evaluation defaults to `not_requested`. Only this explicit command contacts a provider, after setting `OPENAI_API_KEY` in the process environment:
+
+```sh
+paicli evaluate examples/evaluation/cases.json --workspace . \
+  --provider openai --model YOUR_MODEL --method bm25 --timeout 20 --repeats 1
+```
+
+Missing configuration produces `not_run` and exit code 1. Protocol, format, citation and timeout failures remain individual failed attempts, with no scripted fallback. Checks cover JSON schema, supplied evidence IDs and abstention; **semantic correctness remains pending human review**. An empty citation list merely references no invalid IDs and does not establish support. Unavailable usage/cost are `null`. Recorded model checks use local HTTP fixtures; no public-model quality result is claimed.
 
 ## Connect a model or FlowTrail
 
@@ -115,11 +173,11 @@ python -m unittest discover -s tests -v
 paicli demo --json
 ```
 
-Local verification on **2026-10-23**, Windows / Python 3.12.14: **64 tests passed, 0 failed, 0 skipped**. Coverage includes source-line indexing and module/JSX retrieval, stale-content filtering, platform response schemas, SSE cursor/integrity/limits/deadlines and authentication control errors, real local HTTP CLI subprocesses, traversal/link boundaries, write approvals, Agent context budgets, DAG concurrency/cancellation, and Unicode output under cp1252/ASCII subprocess encodings. The real FlowTrail integration script also passed. Remote model behavior and Docker builds were not verified locally. CI covers Ubuntu/Windows with Python 3.11/3.12; see the actual workflow runs for remote results.
+Local verification on **2026-10-23**, Windows / Python 3.12.14: **157 tests passed, 0 failed, 0 skipped**, in **17.813 seconds**. New coverage includes v2 anchors/soft terms, strict short queries, `GET` stopword precedence, anchor-only retrieval, bilingual/Unicode retrieval, source/snapshot consistency, corrupt index handling, false-abstention metrics, and real CLI/scripted-Agent tool round trips. Existing coverage includes source-line and module/JSX retrieval, stale-content filtering, platform schemas, SSE cursor/integrity/limits/deadlines and authentication errors, path/link boundaries, write approvals, context budgets, DAG concurrency/cancellation, and subprocess encodings. Passing tests does not establish retrieval quality. This iteration also passed the offline demo and real local FlowTrail integration against the local sibling project, with explicitly mocked inference. Public-model answer quality and Docker builds were not validated. CI covers Ubuntu/Windows with Python 3.11/3.12; see actual workflow runs for remote results.
 
 `src/paicli/` contains the CLI, Agent, tools, storage, index, planner, and API adapters. `tests/` contains the standard-library test suite; `examples/` contains inspectable fixtures and scripted responses. A Dockerfile is included for subsequent container validation.
 
-Exit codes: `0` completed command; `1` local I/O/database error or failed diagnostic check; `2` invalid configuration or policy/model/platform/plan error; `3` exhausted execution budget; `130` interruption. Review tool-level results separately.
+Exit codes: `0` completed command; `1` local I/O/database error, failed diagnostic check, or explicit answer evaluation not run/containing errors; `2` invalid configuration or policy/model/platform/plan error; `3` exhausted execution budget; `130` interruption. Review tool-level results separately.
 
 ## Origin and license
 
