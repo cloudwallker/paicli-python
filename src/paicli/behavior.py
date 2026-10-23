@@ -18,6 +18,10 @@ BEHAVIOR_VOCABULARY = (
     ("cleanup", ("清理", "清除"), ("cleanup", "clean", "prune", "purge", "evict", "gc")),
     ("watch", ("监听", "监视", "监控"), ("watch", "watched", "watcher", "watching", "observe", "observed", "observer", "observing", "poll", "polled", "polling", "monitor", "monitored", "monitoring")),
     ("background", ("后台", "守护"), ("background", "daemon")),
+    ("jitter", ("抖动", "随机退避"), ("jitter", "jittered")),
+    ("synonym", ("同义词", "近义词"), ("synonym", "synonyms", "thesaurus")),
+    ("tokenization", ("分词", "词元化"), ("tokenizer", "tokenize", "tokenization", "tokeniser")),
+    ("pricing", ("价格", "计价"), ("price", "prices", "pricing")),
 )
 BEHAVIOR_CONCEPTS = frozenset(name for name, _, _ in BEHAVIOR_VOCABULARY)
 BEHAVIOR_POLICY = {

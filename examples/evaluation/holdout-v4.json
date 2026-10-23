@@ -1,0 +1,42 @@
+{
+  "name": "paicli-independent-source-diagnostic-v4",
+  "version": 1,
+  "annotation_note": "独立标注者只阅读指定九个实际源码文件；未读取 retrieval.py、behavior.py、旧题或旧报告，未运行检索。路径相对 forgithub/paicli-python。无答案表示所问机制在本次限定源码中没有可支持的回答，不是整个项目或外部系统不存在该能力的断言；明确拒绝和抛错如有直接依据仍算可答。仅作新的独立诊断，不能证明跨项目泛化。",
+  "source_files": {
+    "src/paicli/workspace.py": "cf5bd79b9bfd88975c1f503a97172f4aba55149c2e944c6c55277e5c43533529",
+    "src/paicli/storage.py": "9bf95000b99b1fa617f317573bf23d4d0296ac9ef5da095b94a9ca6ec33527ef",
+    "src/paicli/agent.py": "24e6e1d3cd1f3179bd8371f86d58a8a6bb8a05452e3f524bfc72694a995ac73c",
+    "src/paicli/plan.py": "d55d6c972e9eef359bdb57fd681a9b0be0a9f4cbe3a4e644b1ba72fdb142880a",
+    "src/paicli/index.py": "774d3f6f04c88a04dfeae767b6a0cbbe575af07c23ae0002000c08bcc4868e01",
+    "src/paicli/models.py": "4ddf8ef5c20e401765d9f5dd6485fe57cf0858cb54419daf11989d329bc0fb62",
+    "src/paicli/platform.py": "2aae3c3388fd285f277800b239ca796f262a6e874d058046c15422ca44276095",
+    "src/paicli/errors.py": "38dffcdb4d0bd2644dcdac9d3dee65b4b308612c13839a3a456abcb9c4656afd",
+    "src/paicli/__init__.py": "4567ace5334fe5bd419d30fe3afe33b977419fa2e0956f217bed3c9b9b167589"
+  },
+  "cases": [
+    {"id":"v4-001","query":"目录里的链接即使指向工作区内，为什么仍然打不开？普通符号链接、Windows 目录联接和硬链接分别怎么拦？","answerable":true,"category":"natural_language","relevant_spans":[{"path":"src/paicli/workspace.py","start_line":21,"end_line":27},{"path":"src/paicli/workspace.py","start_line":57,"end_line":68}]},
+    {"id":"v4-002","query":"When an old conversation is too long, what is kept intact, and how is the omitted history represented without a model-written summary?","answerable":true,"category":"natural_language","relevant_spans":[{"path":"src/paicli/storage.py","start_line":61,"end_line":93}]},
+    {"id":"v4-003","query":"保存会话到 SQLite 时，用于加密消息正文的口令如何派生密钥，轮换密钥时旧记录怎么解密？","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-004","query":"How does validate_reply reject repeated tool-call IDs and duplicate keys inside function.arguments, and what error does the caller receive?","answerable":true,"category":"exact_identifier","relevant_spans":[{"path":"src/paicli/agent.py","start_line":34,"end_line":40},{"path":"src/paicli/agent.py","start_line":53,"end_line":66}]},
+    {"id":"v4-005","query":"工具拒绝审批、读写系统错误和耗尽预算，会不会都变成一次工具失败并继续？请说明错误类型和消息如何记录。","answerable":true,"category":"cross_module","relevant_spans":[{"path":"src/paicli/errors.py","start_line":4,"end_line":17},{"path":"src/paicli/agent.py","start_line":119,"end_line":134}]},
+    {"id":"v4-006","query":"When plan workers run on separate machines, how does PlanRunner renew task leases and reclaim work after a worker heartbeat disappears?","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-007","query":"一个依赖图中，只要前置任务完成就会立刻启动后续任务吗？并发上限与任务失败时的取消动作分别在哪里生效？","answerable":true,"category":"natural_language","relevant_spans":[{"path":"src/paicli/plan.py","start_line":59,"end_line":83}]},
+    {"id":"v4-008","query":"In chunks_for, how are decorators, nested methods, and module-level imports or constants covered, and how large can each emitted source window be?","answerable":true,"category":"exact_identifier","relevant_spans":[{"path":"src/paicli/index.py","start_line":29,"end_line":62}]},
+    {"id":"v4-009","query":"平台登录采用 OAuth 设备码时，用户码过期后如何重新申请，轮询间隔如何退避，刷新令牌又保存在哪里？","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-010","query":"Which endpoint URL rules do OpenAIModel and PlatformClient share, and can either use plain HTTP for a non-loopback host?","answerable":true,"category":"cross_module","relevant_spans":[{"path":"src/paicli/models.py","start_line":13,"end_line":23},{"path":"src/paicli/models.py","start_line":40,"end_line":44},{"path":"src/paicli/platform.py","start_line":132,"end_line":136}]},
+    {"id":"v4-011","query":"Budget 的 max_rounds、timeout_seconds、context_chars、max_calls_per_round 默认值是多少，哪些边界会让初始化失败？","answerable":true,"category":"exact_identifier","relevant_spans":[{"path":"src/paicli/agent.py","start_line":22,"end_line":31}]},
+    {"id":"v4-012","query":"If event replay contains two valid records and then a truncated last record, does the client return those two records and an advanced cursor, or fail the replay?","answerable":true,"category":"negated_capability","relevant_spans":[{"path":"src/paicli/platform.py","start_line":61,"end_line":66},{"path":"src/paicli/platform.py","start_line":108,"end_line":129}]},
+    {"id":"v4-013","query":"语义代码搜索构建 HNSW 图时，向量的维度、M 和 efSearch 默认取多少，修改参数后如何增量重建图？","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-014","query":"Where does the conversation ledger live, what prevents symbolic or hard links to its journal sidecars, and what permissions does storage apply on POSIX?","answerable":true,"category":"cross_module","relevant_spans":[{"path":"src/paicli/workspace.py","start_line":94,"end_line":104},{"path":"src/paicli/storage.py","start_line":12,"end_line":18}]},
+    {"id":"v4-015","query":"ScriptedModel 的初始化脚本和收到的历史，会不会因为调用方后来改动原对象而被串改？脚本用完后是什么行为？","answerable":true,"category":"negated_capability","relevant_spans":[{"path":"src/paicli/models.py","start_line":26,"end_line":37}]},
+    {"id":"v4-016","query":"How does Store choose a schema migration version on startup, and how does it roll back an interrupted migration without losing older sessions?","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-017","query":"单个 Agent 的超时与整张 Plan 的超时分别怎样包住异步执行，最后对外抛出的异常是否相同？","answerable":true,"category":"cross_module","relevant_spans":[{"path":"src/paicli/agent.py","start_line":104,"end_line":111},{"path":"src/paicli/agent.py","start_line":135,"end_line":137},{"path":"src/paicli/plan.py","start_line":51,"end_line":58},{"path":"src/paicli/plan.py","start_line":77,"end_line":83},{"path":"src/paicli/errors.py","start_line":16,"end_line":17}]},
+    {"id":"v4-018","query":"What consistency checks does PlatformClient.run apply between workflow node definitions and runtime node results, beyond just validating status strings?","answerable":true,"category":"exact_identifier","relevant_spans":[{"path":"src/paicli/platform.py","start_line":205,"end_line":231}]},
+    {"id":"v4-019","query":"不同会话各有自己的路径放行规则时，Workspace 怎样合并用户级与项目级规则，并决定哪个例外可以覆盖受保护目录？","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-020","query":"After indexing a repository, I edit or remove a source file. How does a later code search avoid returning the old stored snippet?","answerable":true,"category":"natural_language","relevant_spans":[{"path":"src/paicli/index.py","start_line":19,"end_line":20},{"path":"src/paicli/index.py","start_line":119,"end_line":129}]},
+    {"id":"v4-021","query":"网络诊断里，域名解析失败后还会继续连端口和发 HTTP 吗？如果只是 TCP 探测失败呢？","answerable":true,"category":"negated_capability","relevant_spans":[{"path":"src/paicli/platform.py","start_line":253,"end_line":275}]},
+    {"id":"v4-022","query":"How does the model adapter distribute requests across multiple providers using live cost and latency measurements, and where are its routing weights updated?","answerable":false,"category":"absent_mechanism","relevant_spans":[]},
+    {"id":"v4-023","query":"我继续旧会话后，历史消息的先后和会话列表的先后，各按什么字段排序？会话列表会返回什么统计信息？","answerable":true,"category":"natural_language","relevant_spans":[{"path":"src/paicli/storage.py","start_line":45,"end_line":51}]},
+    {"id":"v4-024","query":"During package initialization, how are installed tool-plugin entry points discovered, and how can a plugin be reloaded without restarting the process?","answerable":false,"category":"absent_mechanism","relevant_spans":[]}
+  ]
+}
