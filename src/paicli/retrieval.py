@@ -18,13 +18,15 @@ import unicodedata
 
 from .errors import PolicyError
 from .index import CodeIndex, MAX_FILE_BYTES
+from .behavior import (BEHAVIOR_CONCEPTS, BEHAVIOR_POLICY, BEHAVIOR_VOCABULARY,
+                       BehaviorAnalysis, analyze_source)
 
 
 MAX_CHUNKS = 10_000
 MAX_CONTENT_BYTES = 8 * 1024 * 1024
 MAX_VISIBLE_CHARS = 8_000
 COVERAGE_THRESHOLD = 0.6
-ALGORITHM_VERSION = "bilingual-concept-bm25-v2"
+ALGORITHM_VERSION = "bilingual-concept-bm25-v3"
 SHORT_QUERY_MAX_CONCEPTS = 3
 
 # This syntactic policy is fixed before held-out evaluation. It does not infer
@@ -125,7 +127,7 @@ _VOCABULARY = (
     ("input", ("输入",), ("input", "stdin")),
     ("authentication", ("认证", "身份验证"), ("authentication", "authenticate", "auth")),
     ("sandbox", ("沙箱", "隔离"), ("sandbox", "isolation", "isolate")),
-)
+) + BEHAVIOR_VOCABULARY
 
 _EN_STOP = frozenset("a an the this that these those is are was were be been being do does did how what why where when which who can could would should will shall may might must to of for in on at by with from and or but if then as it its they them their we our you your i me my please explain describe show tell code project function method implementation implement implemented feature functionality use uses using work works working support supports supported handle handles handling get make have has had not no into about".split())
 _ZH_STOP = frozenset("这个 这些 这里 那个 这些 项目 代码 函数 方法 功能 实现 使用 如何 怎样 怎么 为什么 什么 哪些 哪里 哪个 是否 有没有 能不能 支持 机制 流程 设计 处理 进行 以及 通过 其中 里面 一个 一下 相关 具体 可以 需要 请问 解释 介绍 说明 讲讲 作用 区别 之间 还有 例如 它们 你们 我们 应当 应该 采用 能够 关于 不会 避免 防止 保证 保障 确保 解决 工作 运作 请 是 有 的 了 吗 呢 和 与 在 中 为 对 把 将 等 会 能 从 来 做 得 着 到 后 前 时 及 或 不 它 你 我".split())
@@ -228,8 +230,10 @@ _PROFILE = {
     "unicode_version": unicodedata.unidata_version,
     "threshold": COVERAGE_THRESHOLD,
     "ranking": "coverage-desc,bm25-max-per-concept-desc,path,start_line,end_line,symbol",
-    "gate": "known-concept-and-anchor-coverage-at-least-threshold-and-all-anchors-in-visible-window",
+    "gate": "known-concept-and-anchor-coverage-at-least-threshold-and-all-anchors-in-visible-window-and-all-required-behaviors-in-one-visible-execution-scope",
     "anchor_rules": _ANCHOR_RULES,
+    "behavior_policy": BEHAVIOR_POLICY,
+    "behavior_vocabulary_hash": _hash(BEHAVIOR_VOCABULARY),
     "short_query_max_concepts": SHORT_QUERY_MAX_CONCEPTS,
     "bm25_k1": 1.2,
     "bm25_b": 0.75,
@@ -253,6 +257,8 @@ class _Window:
     terms: object
     length: int
     identifiers: tuple
+    behavior_analysis: BehaviorAnalysis
+    behavior_evidence: tuple
 
 
 def _read_source(workspace, name: str):
@@ -330,6 +336,7 @@ def _query_policy(query: str, concepts: list[dict]) -> dict:
         "mode": "keywords" if short else "natural_language",
         "required_anchors": list(anchors.values()),
         "gate_concepts": [concept["term"] for concept in concepts if concept["kind"] == "concept"],
+        "required_behaviors": [concept["term"] for concept in concepts if concept["term"] in BEHAVIOR_CONCEPTS],
         "soft_terms": [concept["term"] for concept in concepts if concept["kind"] == "literal" and concept["term"] not in anchored_parts],
     }
 
@@ -353,6 +360,31 @@ def _frequency(window: _Window, term: str) -> int:
     # Literal Chinese names remain searchable inside longer comments; there is
     # no fallback from an unrecognized Chinese question to all code chunks.
     return window.search_text.count(term) if _CJK.fullmatch(term) else window.terms.get(term, 0)
+
+
+def _behavior_matches(window: _Window, required: list[str]) -> dict:
+    analysis = {"status": window.behavior_analysis.status,
+                "node_count": window.behavior_analysis.node_count}
+    if not required:
+        return {"matched_behaviors": [], "missing_behaviors": [], "behavior_evidence": [],
+                "behavior_scope_satisfied": True, "behavior_supporting_scopes": [],
+                "behavior_analysis": analysis}
+    by_scope = {}
+    records = []
+    for evidence in window.behavior_evidence:
+        concepts = {_ALIAS_CONCEPT.get(part) for part in _parts(evidence.identifier)}
+        for behavior in required:
+            if behavior in concepts:
+                by_scope.setdefault(evidence.scope, set()).add(behavior)
+                records.append({"behavior": behavior, "identifier": evidence.identifier,
+                                "line": evidence.line, "kind": evidence.kind, "scope": evidence.scope})
+    matched = {behavior for found in by_scope.values() for behavior in found}
+    supporting = sorted(scope for scope, found in by_scope.items() if set(required) <= found)
+    return {"matched_behaviors": [behavior for behavior in required if behavior in matched],
+            "missing_behaviors": [behavior for behavior in required if behavior not in matched],
+            "behavior_evidence": records, "behavior_scope_satisfied": not required or bool(supporting),
+            "behavior_supporting_scopes": supporting,
+            "behavior_analysis": analysis}
 
 
 class CodeRetriever:
@@ -415,7 +447,7 @@ class CodeRetriever:
                         except UnicodeError:
                             source_cache[path] = None
                         else:
-                            source_cache[path] = (hashlib.sha256(raw).hexdigest(), tuple(line for line in _LINES.findall(text) if line))
+                            source_cache[path] = (hashlib.sha256(raw).hexdigest(), tuple(line for line in _LINES.findall(text) if line), analyze_source(path, text))
             source = source_cache[path]
             if source is None or digest != source[0] or type(start) is not int or type(end) is not int or not 1 <= start <= end <= len(source[1]):
                 excluded_chunks += 1
@@ -441,7 +473,8 @@ class CodeRetriever:
                 terms = Counter(_parts(visible))
                 search_text = unicodedata.normalize("NFC", visible.casefold())
                 identifiers = tuple(sorted({(unicodedata.normalize("NFC", identifier.casefold()), _identifier_components(identifier)) for identifier in _identifier_runs(visible)}))
-                windows.append(_Window(path, symbol, window_start, window_end, visible, search_text, MappingProxyType(dict(terms)), sum(terms.values()), identifiers))
+                behavior_evidence = tuple(item for item in source[2].evidence if window_start <= item.line <= window_end)
+                windows.append(_Window(path, symbol, window_start, window_end, visible, search_text, MappingProxyType(dict(terms)), sum(terms.values()), identifiers, source[2], behavior_evidence))
 
             for line_number, line in enumerate(lines, start):
                 if len(line) > MAX_VISIBLE_CHARS:
@@ -463,7 +496,8 @@ class CodeRetriever:
         self._windows = tuple(windows)
         self._stamps = MappingProxyType(stamps)
         snapshot_identity = {"files": sorted(stamps.items()), "windows": [(window.path, window.symbol, window.start_line, window.end_line) for window in windows]}
-        self._profile = {**_PROFILE, "snapshot_chunks": read_chunks, "snapshot_content_bytes": read_content_bytes, "snapshot_source_bytes": source_bytes, "snapshot_windows": len(windows), "excluded_chunks": excluded_chunks, "omitted_oversize_lines": omitted_lines, "snapshot_hash": _hash(snapshot_identity)}
+        behavior_statuses = Counter(source[2].status for source in source_cache.values() if source is not None)
+        self._profile = {**_PROFILE, "snapshot_chunks": read_chunks, "snapshot_content_bytes": read_content_bytes, "snapshot_source_bytes": source_bytes, "snapshot_windows": len(windows), "excluded_chunks": excluded_chunks, "omitted_oversize_lines": omitted_lines, "behavior_analysis_statuses": dict(behavior_statuses), "snapshot_hash": _hash(snapshot_identity)}
 
     def search(self, query: str, limit: int = 5) -> dict:
         if not isinstance(query, str) or not query.strip() or len(query) > 500:
@@ -473,6 +507,7 @@ class CodeRetriever:
         concepts, ignored = _query_concepts(query)
         policy = _query_policy(query, concepts)
         anchors = policy["required_anchors"]
+        required_behaviors = policy["required_behaviors"]
         gate_concepts = set(policy["gate_concepts"])
         evidence_count = len(gate_concepts) + len(anchors)
         valid_paths = set()
@@ -530,20 +565,31 @@ class CodeRetriever:
             missing = [concept["term"] for concept in concepts if concept["term"] not in matched]
             missing_anchors = [anchor["term"] for anchor in anchors if anchor["term"] not in matched_anchors]
             evidence_coverage = (len(gate_concepts.intersection(matched)) + len(matched_anchors)) / evidence_count if evidence_count else 0.0
-            candidates.append({"path": window.path, "symbol": window.symbol, "start_line": window.start_line, "end_line": window.end_line, "content": window.content, "score": score, "lexical_coverage": coverage, "evidence_coverage": evidence_coverage, "matched_anchors": matched_anchors, "missing_anchors": missing_anchors, "matched_terms": matched, "unsupported_terms": missing, "matches": matches, "score_kind": score_kind})
+            candidates.append({"path": window.path, "symbol": window.symbol, "start_line": window.start_line, "end_line": window.end_line, "content": window.content, "score": score, "lexical_coverage": coverage, "evidence_coverage": evidence_coverage, "matched_anchors": matched_anchors, "missing_anchors": missing_anchors, "matched_terms": matched, "unsupported_terms": missing, "matches": matches, "score_kind": score_kind, **_behavior_matches(window, required_behaviors)})
         candidates.sort(key=lambda hit: (-hit["lexical_coverage"], -hit["score"], hit["path"], hit["start_line"], hit["end_line"], hit["symbol"]))
-        candidates = candidates[:limit]
-        hits = [dict(candidate) for candidate in candidates if candidate["evidence_coverage"] >= COVERAGE_THRESHOLD and not candidate["missing_anchors"]]
-        best_coverage = max((candidate["evidence_coverage"] for candidate in candidates), default=0.0)
-        missing_anchors = [anchor["term"] for anchor in anchors if not any(anchor["term"] in candidate["matched_anchors"] for candidate in candidates)]
+        # Behavior evidence can reject an arbitrary number of otherwise strong
+        # lexical matches, such as comments. Check the ranked pool before its
+        # hit limit so those decoys cannot hide a valid implementation. Keep
+        # raw top-k candidates for offline ranking comparisons and preserve the
+        # original limit policy for queries without a specific behavior.
+        checked = candidates if required_behaviors else candidates[:limit]
+        hits = [dict(candidate) for candidate in checked if candidate["evidence_coverage"] >= COVERAGE_THRESHOLD and not candidate["missing_anchors"] and candidate["behavior_scope_satisfied"]][:limit]
+        best_coverage = max((candidate["evidence_coverage"] for candidate in checked), default=0.0)
+        missing_anchors = [anchor["term"] for anchor in anchors if not any(anchor["term"] in candidate["matched_anchors"] for candidate in checked)]
+        missing_behaviors = [behavior for behavior in required_behaviors if not any(behavior in candidate["matched_behaviors"] for candidate in checked)]
         if not concepts and not anchors:
             reason = "no_searchable_terms"
         elif missing_anchors:
             reason = "unsupported_required_anchors"
-        elif not candidates:
+        elif not checked:
             reason = "no_visible_lexical_evidence"
         elif not evidence_count:
             reason = "no_gate_evidence_terms"
+        elif not hits and missing_behaviors:
+            reason = "unsupported_required_behaviors"
+        elif not hits and required_behaviors and not any(candidate["behavior_scope_satisfied"] for candidate in checked):
+            reason = ("required_behaviors_not_in_same_scope" if any(not candidate["missing_behaviors"] for candidate in checked)
+                      else "required_behaviors_not_in_same_candidate")
         elif best_coverage < COVERAGE_THRESHOLD:
             reason = "coverage_below_threshold"
         elif not hits:
@@ -552,8 +598,8 @@ class CodeRetriever:
             reason = "sufficient_lexical_coverage"
         return {
             "hits": hits,
-            "candidates": candidates,
-            "decision": {"status": "accepted" if hits else "insufficient_evidence", "reason": reason, "threshold": COVERAGE_THRESHOLD, "best_coverage": best_coverage, "unsupported_terms": unsupported, "missing_anchors": missing_anchors, "evidence_term_count": evidence_count, "meaning": "Heuristic lexical evidence only; insufficient evidence does not prove absence of an implementation. Unknown prose is soft evidence, so acceptance does not establish the requested behavior."},
+            "candidates": candidates[:limit],
+            "decision": {"status": "accepted" if hits else "insufficient_evidence", "reason": reason, "threshold": COVERAGE_THRESHOLD, "best_coverage": best_coverage, "unsupported_terms": unsupported, "missing_anchors": missing_anchors, "missing_behaviors": missing_behaviors, "evidence_term_count": evidence_count, "meaning": "Heuristic lexical evidence only; insufficient evidence does not prove absence of an implementation. Unknown prose is soft evidence. Specific behavior concepts require visible Python identifiers in one execution scope, which still does not establish runtime semantics or correctness."},
             "query": {"original": query, "concepts": concepts, "ignored_terms": ignored, **policy, "expansion": "General computing synonyms; snake_case/CamelCase/acronym splitting; NFC+casefold; Unicode literals retained; limited inflections; one vote per concept. Explicit anchors match within one identifier; ordinary prose is soft evidence."},
             "profile": {**copy.deepcopy(self._profile), "unavailable_files": len(self._stamps) - len(valid_paths)},
         }

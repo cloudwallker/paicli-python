@@ -55,6 +55,33 @@ class RetrievalContractTests(unittest.TestCase):
         self.assertNotIn('candidates', payload)
         self.assertNotIn('return history', result.stdout)
 
+    def test_cli_behavior_refusal_does_not_expose_adjacent_history_source(self):
+        result = self.cli('context history automatically expire cleanup')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload['decision']['status'], 'insufficient_evidence')
+        self.assertEqual(payload['hits'], [])
+        self.assertTrue(payload['query']['required_behaviors'])
+        self.assertNotIn('candidates', payload)
+        self.assertNotIn('return history', result.stdout)
+
+    def test_agent_behavior_refusal_keeps_rejected_source_out_of_model_context(self):
+        model = ScriptedModel([
+            {'role': 'assistant', 'content': None, 'tool_calls': [
+                {'id': 'behavior1', 'type': 'function', 'function': {
+                    'name': 'retrieve_code', 'arguments': json.dumps({
+                        'query': 'context history automatically expire cleanup'})}}]},
+            {'role': 'assistant', 'content': 'Explicit scripted fixture; no quality claim.'},
+        ])
+        result = asyncio.run(Agent(model, self.tools, self.store).run('Locate retention code'))
+        self.assertEqual(result['trace'], [{'tool': 'retrieve_code', 'ok': True}])
+        response = next(m for m in model.requests[1] if m['role'] == 'tool')
+        payload = json.loads(response['content'])['result']
+        self.assertEqual(payload['decision']['status'], 'insufficient_evidence')
+        self.assertEqual(payload['hits'], [])
+        self.assertNotIn('candidates', payload)
+        self.assertNotIn('return history', response['content'])
+
     def test_readonly_agent_roundtrip_preserves_evidence_decision(self):
         model = ScriptedModel([
             {'role': 'assistant', 'content': None, 'tool_calls': [
