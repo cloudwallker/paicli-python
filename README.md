@@ -64,7 +64,7 @@ The example's final sentence is scripted; inspect the tool `trace` and file cont
 
 ## Bilingual code retrieval
 
-**Experimental status: v4 improves known development regressions, but fresh-set generalization acceptance did not pass; only 1 of 3 targets passed. Reliable abstention is not established.** On the former 32-case holdout, now development data, v4 reduced answerable false abstentions from **6/20 to 4/20** and unanswerable false retrievals from **3/12 to 0/12**. On a new 24-case set first evaluated after implementation/rules freeze, v3 and v4 both reached gated Recall@5 **0.5**, MRR@5 **0.5625**, **5/16** false abstentions (**31.25%**) and **4/8** negative false retrievals (**50%**). These are same-repository, agent-annotated retrieval results, separate from generated-answer quality.
+**Experimental status: v5 meets the known development targets, but the new synthetic set regresses and fails the false-abstention target. This iteration remains a draft.** On the former 24-case holdout, now development data, v5 reduces answerable false abstentions **5/16 → 4/16 (25%)** and negative false retrievals **4/8 → 0/8**. On a new 32-case synthetic set first scored after implementation/rules freeze, false abstentions increase **5/20 → 11/20 (55%)**, negative false retrievals **2/12 → 3/12 (25%)**, and gated Recall@5 falls **0.45 → 0.40**. Two of three predefined targets pass, but neither generalization improvement nor reliable abstention is established. Retrieval evidence and generated-answer quality are measured separately.
 
 ```sh
 paicli index --workspace .
@@ -72,15 +72,17 @@ paicli retrieve "压缩上下文" --workspace . --limit 5
 paicli retrieve "QuantumNimbus network protocol" --workspace .
 ```
 
-`retrieve` and the read-only Agent tool `retrieve_code` use a fixed computing-term glossary, identifier splitting, and concept-level lexical scores. V4 (`bilingual-concept-bm25-v4`) adds **version** and **excerpt** as ordinary concepts while preserving the v2 **required anchors**, **soft terms**, and **0.6** coverage policy: backtick identifiers, underscore/mixed-case identifiers, uppercase acronyms, non-initial unknown Titlecase words, and non-Han letter runs in mixed-Han queries become anchors. For short queries with at most **3 distinct non-stopword concepts**, every remaining unknown literal is also required. Other unknown prose remains ranking evidence without an individual veto. A candidate must contain every anchor and cover at least 0.6 of the known concepts plus anchors. With neither a known concept nor an anchor, the gate rejects the query.
+`retrieve` and the read-only Agent tool `retrieve_code` use a fixed computing-term glossary, identifier splitting, and concept-level lexical scores. V5 (`bilingual-concept-bm25-v5`) adds the ordinary **identifier** concept (`id`/`identifier`, 标识符/编号) and recognizes standalone known ordinary acronym plurals such as **IDs, DBs, and ASTs**. When unquoted, these become `required_concepts`: the **same visible candidate** must contain the corresponding concept, even if other terms already meet the **0.6** coverage threshold. Aliases contribute one vote, and mandatory concepts are not counted twice in the denominator. Source splitting recognizes forms such as `callIDs` and `getIDsFromCall` without changing explicit-anchor matching.
+
+Backtick identifiers, compound identifiers such as `user_IDs` and `MissingIDs`, and unknown acronyms retain exact-anchor requirements. Other v2 anchor rules also remain: underscore/mixed-case identifiers, uppercase acronyms, non-initial unknown Titlecase words, and non-Han letter runs in mixed-Han queries become anchors, except for the known unquoted acronym plurals above. For short queries with at most **3 distinct non-stopword concepts**, every remaining unknown literal is required. Other unknown prose remains ranking evidence without an individual veto. A candidate must contain every anchor, every mandatory concept, and cover at least 0.6 of the known concepts plus anchors. With neither a known concept nor an anchor, the gate rejects the query.
 
 Anchor matching uses normalized exact identifiers or contiguous components within one identifier, without assembling separate identifiers; Han literal anchors use substring matching. Explicit anchors are recognized before stopword filtering, so `GET` remains required even though ordinary `get` is a stopword. Anchor-only queries such as `` `get` `` can create candidates; when no concept matches, their ranking sums per-anchor BM25 scores using binary frequency. The threshold is a heuristic, not a correctness probability.
 
-The behavior gate requires identifier evidence in the **same visible candidate and execution scope** for every recognized `required_behaviors` concept. V4 adds four narrow bilingual families—**jitter, synonym, tokenization, and pricing**—to the existing checkpoint, expiration/TTL/retention, cleanup, watch, and background/daemon families. The AST evidence rules are unchanged. These are retrieval vocabulary and test fixtures; they add no corresponding PaiCLI business features.
+The behavior gate requires identifier evidence in the **same visible candidate and execution scope** for every recognized `required_behaviors` concept. V5 adds five narrow bilingual families—**lease, heartbeat, migration, allowlist, and routing**—to the existing families, including v4's jitter, synonym, tokenization, and pricing. The AST evidence rules are unchanged. These are retrieval vocabulary and test fixtures; they add no corresponding PaiCLI business features.
 
 The behavior layer parses Python ASTs and records non-stub function names, loaded names/attributes, call targets/keywords, and literal-`True` daemon settings from complete visible source lines. Comments, docstrings, other strings, imports, class names, parameters, annotations/type aliases, placeholder bodies, and `TYPE_CHECKING` branches supply no behavior evidence. Module/class bodies, functions, lambdas, and comprehensions have separate scopes: a comprehension's first iterable stays in its enclosing scope, while its body, filters, and later iterables use the comprehension scope. Boolean expressions retain potentially evaluated prefixes and omit statically short-circuited operands; a `daemon=` keyword or `.daemon` assignment supplies positive setting evidence only with literal `True`. Each file has a **100,000 AST-node** budget. Non-Python files, parse failures, budget excesses, and analysis failures conservatively supply no behavior evidence; ordinary retrieval remains available.
 
-For behavior queries, the retriever gates the **complete ranked candidate pool**, then returns the first `k` accepted `hits`. Diagnostic raw `candidates` still contain only the first `k` lexical candidates, so an accepted hit can fall outside that raw top `k`. Ordinary queries retain v2's limit-before-gate policy. `profile.behavior_policy` records this selection rule. Results expose `required_behaviors`, matched/missing behaviors, identifier locations/scopes, analysis status, concepts, anchors, soft terms, coverage, rule/snapshot fingerprints, and an `accepted` or `insufficient_evidence` decision. Only accepted snippets reach the CLI/Agent.
+Queries with `required_behaviors` **or `required_concepts`** gate the **complete ranked candidate pool**, then return the first `k` accepted `hits`. This prevents five high-ranked candidates lacking a mandatory acronym concept from hiding a valid later candidate. Diagnostic raw `candidates` still contain only the first `k` lexical candidates, so an accepted hit can fall outside that raw top `k`. Other queries retain v2's limit-before-gate policy. `profile.behavior_policy` records this selection rule. Results expose `required_concepts`, `missing_required_concepts`, `required_behaviors`, matched/missing behaviors, identifier locations/scopes, analysis status, concepts, anchors, soft terms, coverage, rule/snapshot fingerprints, and an `accepted` or `insufficient_evidence` decision. Only accepted snippets reach the CLI/Agent.
 
 An insufficient result means the retriever found inadequate evidence. It does not prove a feature is absent or force the whole Agent to abstain: `search_code` and other tools remain available. Unknown behavior wording and aliases, cross-function implementations, and non-Python code can cause false abstention. An identifier in an executable syntax position still does not establish runtime semantics or correctness; a matching expiration name, for example, does not verify a requested seven-day duration. Soft prose can also accept related code without supporting the requested behavior. This is an experimental lexical baseline with no embedding model; the original `search` behavior is unchanged.
 
@@ -96,33 +98,60 @@ paicli evaluate examples/evaluation/holdout.json --workspace . --k 5
 paicli evaluate examples/evaluation/holdout-v2.json --workspace . --k 5
 paicli evaluate examples/evaluation/holdout-v3.json --workspace . --k 5
 paicli evaluate examples/evaluation/holdout-v4.json --workspace . --k 5
+paicli evaluate examples/evaluation/holdout-v5.json --workspace . --k 5
 ```
 
 Use the exact returned symbol `id` as `SYMBOL_ID`. With no query, `graph` emits its snapshot. Agent and read-only workers also receive `find_symbol`, `callers`, and `callees`. Each query rebuilds the graph without writing session state and includes source locations/digests. Direct, alias and relative imports can form resolved edges. Uncertain instances, inheritance, shadowing and dynamic dispatch remain unknown. Inspect `diagnostics`, `truncated`, and `analysis_incomplete`; an empty result cannot prove absence.
 
 This is a static declaration graph, not source execution, full Python type inference, or runtime tracing. Limits: 5,000 safe files, 8 MiB total source, 10,000 symbols, 30,000 calls, 512 KiB and 100,000 AST nodes per file. Tool deadline checks are cooperative; local analysis is not forcibly preempted.
 
-The existing **30/24/24/32-case sets are development-visible data**. On the former 32-case `holdout-v3.json`, v4 reduced false abstentions **6/20 → 4/20 (20%)** and negative false retrievals **3/12 → 0/12**, while Recall@5 rose **0.675 → 0.775** and MRR@5 **0.666667 → 0.766667**. On `holdout-v2.json`, v4 retained **14/16** accepted answerable cases, Recall@5 **0.75**, and **0/8** negative false retrievals; MRR@5 rose **0.729167 → 0.770833**. The gated metrics for `cases.json` and `holdout.json` were unchanged. These are development regression results. The prior v3 [dataset](examples/evaluation/holdout-v3.json), [annotation audit](examples/evaluation/holdout-v3-annotations.json), and [first-look results](examples/evaluation/results-v3.json) remain historical records.
+The existing **30/24/24/32/24-case sets are all development data**. The following gated results compare frozen v4 with v5; all five recall values are nondecreasing. The former v4 set meets this iteration's targets of false abstention ≤25%, fewer than four negative false retrievals, and Recall@5 ≥0.5. The v2/v3 regression guards also pass.
 
-For this iteration, a separate source-reading agent prepared [holdout-v4.json](examples/evaluation/holdout-v4.json): **24 new cases, 16 answerable and 8 unanswerable, with 12 Chinese and 12 English queries**. Source, rules, and three targets were frozen before its first v3/v4 comparison. The [annotation audit](examples/evaluation/holdout-v4-annotations.json) and [measured results and freeze record](examples/evaluation/results-v4.json) preserve its provenance, hashes, and results.
-
-| Method on the new v4 set | Recall@5 | MRR@5 | Answerable without snippets | Unanswerable returning snippets |
+| Development set | Recall@5, v4 → v5 | MRR@5, v4 → v5 | False abstentions | Negative false retrievals |
 | --- | --- | --- | --- | --- |
-| BM25, both versions | 0.61875 | 0.708333 | 3/16 | 7/8 |
-| Graph expansion, both versions | 0.6625 | 0.703125 | 3/16 | 7/8 |
-| Raw bilingual, both versions | 0.841667 | 0.848958 | 0/16 | 8/8 |
-| Frozen v3 gate | 0.5 | 0.5625 | 5/16 | 4/8 |
-| V4 gate | 0.5 | 0.5625 | 5/16 | 4/8 |
+| `cases.json`, 30 cases | 0.807692 → 0.846154 | 0.766026 → 0.804487 | 2/26 → 1/26 | 0/4 → 0/4 |
+| `holdout.json`, 24 cases | 0.770833 → 0.770833 | 0.84375 → 0.84375 | 2/16 → 2/16 | 1/8 → 1/8 |
+| `holdout-v2.json`, 24 cases | 0.75 → 0.8125 | 0.770833 → 0.786458 | 2/16 → 2/16 | 0/8 → 0/8 |
+| `holdout-v3.json`, 32 cases | 0.775 → 0.8 | 0.766667 → 0.816667 | 4/20 → 3/20 | 0/12 → 0/12 |
+| `holdout-v4.json`, 24 cases | 0.5 → 0.53125 | 0.5625 → 0.625 | 5/16 → 4/16 | 4/8 → 0/8 |
 
-| Predefined fresh-set v4 target | Measured result | Status |
+Historical [v3 results](examples/evaluation/results-v3.json), [v4 dataset](examples/evaluation/holdout-v4.json), [v4 annotation audit](examples/evaluation/holdout-v4-annotations.json), and [v4 first-look results](examples/evaluation/results-v4.json) remain available. They preserve the measurements made before those sets became development-visible.
+
+For this iteration, an isolated AI agent independently authored **eight small runnable Python fixture files** and [32 new queries](examples/evaluation/holdout-v5.json): **20 answerable, 12 unanswerable, 16 Chinese and 16 English**. The agent knew the requested feature-coverage topics but did not read the retriever or prior cases/results. This is a synthetic diagnostic with shared functions and planned coverage, **not independent human annotation or evaluation on an unseen production project**. [Annotations](examples/evaluation/holdout-v5-annotations.json) and [measured results/frozen hashes](examples/evaluation/results-v5.json) record the provenance and limits.
+
+Source, rules, and targets were frozen before scoring. The first invocation rejected a string schema version before indexing or scoring. Metadata-only adaptation set `version` to integer `1`, moved language metadata into the annotation file, and prefixed published paths; questions, labels, source bytes, and line spans were preserved. No retrieval tuning or relabeling followed the scored run.
+
+| Method on the new synthetic v5 set | Recall@5 | MRR@5 | Answerable without snippets | Unanswerable returning snippets |
+| --- | --- | --- | --- | --- |
+| BM25, both versions | 0.7 | 0.543333 | 5/20 | 9/12 |
+| Graph expansion, both versions | 0.675 | 0.491667 | 5/20 | 9/12 |
+| Raw bilingual v4 | 0.975 | 0.725 | 0/20 | 12/12 |
+| Raw bilingual v5 | 0.975 | 0.71 | 0/20 | 12/12 |
+| Frozen v4 gate | 0.45 | 0.325 | 5/20 | 2/12 |
+| V5 gate | 0.4 | 0.291667 | 11/20 | 3/12 |
+
+| Predefined fresh-set v5 target | Measured result | Status |
 | --- | --- | --- |
-| Answerable false-abstention rate ≤25% | 5/16 = 31.25% | **Failed** |
-| Unanswerable false-retrieval rate ≤25% | 4/8 = 50% | **Failed** |
-| Gated recall ≥80% of frozen v3 | 0.5/0.5 = 100% | Passed |
+| Answerable false-abstention rate ≤25% | 11/20 = 55% | **Failed** |
+| Unanswerable false-retrieval rate ≤25% | 3/12 = 25% | Passed |
+| Gated recall ≥80% of frozen v4 | 0.4/0.45 = 88.89% | Passed |
 
-**Development targets passed; fresh-set generalization acceptance failed.** The new set triggers an added concept in only **one unanswerable version query**. The other five additions—excerpt, jitter, synonym, tokenization, and pricing—have **zero query coverage**: there are no positive queries for the new ordinary concepts and no queries for the new behavior families. This set therefore cannot validate positive generalization of this iteration's rules; paired runnable tests supply separate engineering evidence.
+**Two of three targets passed, but fresh-set acceptance failed.** The negative rate meets the ceiling while worsening from **16.67% to 25%**, and recall meets the retention floor while declining. Passing these thresholds does not show an improvement. The draft retains this result without tuning against the new set.
 
-All datasets use same-repository, agent-generated source annotations, without independent human annotation or cross-project evaluation. The new 24-case set becomes development-visible after this run. Only manifest source enters a temporary corpus; questions, labels, README files and old reports are excluded. Changed digests fail explicitly: review labels before refreshing the manifest.
+The table below counts actual v5 `query.gate_concepts`, not authored category labels. A query can appear in multiple rows. Acceptance alone does not imply relevant evidence.
+
+| Recognized concept | Positive queries | Negative queries | Accepted positives (with span overlap) | Accepted negatives |
+| --- | --- | --- | --- | --- |
+| identifier | 5 | 2 | 3 (3) | 1 |
+| lease | 4 | 2 | 4 (4) | 0 |
+| heartbeat | 3 | 2 | 3 (3) | 0 |
+| migration | 3 | 1 | 0 (0) | 0 |
+| allowlist | 4 | 1 | 0 (0) | 0 |
+| routing | 2 | 1 | 1 (0) | 0 |
+
+The stricter acronym `required_concepts` path itself is triggered by only **two positive queries and no negative queries**; the wider identifier row includes ordinary concept matches. All recognized migration and allowlist positives are rejected. Routing accepts one positive but retrieves no labeled relevant span. Paired executable tests provide separate engineering evidence, and the synthetic results do not establish broader capability coverage.
+
+The five older sets use same-repository AI source annotations; the new set uses independently authored synthetic code. Neither has independent human annotations or real production-project validation. The new 32-case set becomes development-visible after this run. Only manifest source enters a temporary corpus; questions, labels, README files and old reports are excluded. Changed digests fail explicitly: review labels before refreshing the manifest.
 
 Reports compare `bm25`, `graph_expand` (resolved one-hop calls), `code_aware` (raw bilingual candidates), and `code_aware_gated` (accepted candidates). They retain each query, visible evidence, decision, analysis profile, Recall@k, MRR@k, false retrieval on unanswerable cases, and category metrics. Overall Recall/MRR include **all answerable cases**, counting rejected ones as zero; false-abstention rate and conditional recall among accepted answerable cases expose the tradeoff. Undefined denominators are `null`. Raw and gated bilingual results share one measured search; build times are separate. Span overlap measures retrieved evidence, not answer correctness; broad class/function labels can inflate coverage. Unanswerable false retrieval means snippets were returned, not model hallucination. Neither graph expansion nor the gate guarantees better ranking or answer quality.
 
@@ -189,9 +218,9 @@ python -m unittest discover -s tests -v
 paicli demo --json
 ```
 
-Local verification on **2026-10-23**, Windows / Python 3.12.14: **196 tests passed, 0 failed, 0 skipped**, in **25.991 seconds**; the offline demo and a separate review's **79 alias/boundary checks** also passed. New tests pair positive/negative cases for the added ordinary concepts and behavior families. Existing coverage includes visible-line/same-scope AST evidence and exclusions, short-circuit/comprehension/daemon boundaries, analysis limits, gate-before-limit selection, v2 anchors, CLI/Agent tools, platform/SSE boundaries, write approvals, context budgets, and DAG cancellation. Engineering tests and retrieval quality have separate acceptance results.
+Local verification on **2026-10-23**, Windows / Python 3.12.14: **213 tests passed, 0 failed, 0 skipped**, in **27.848 seconds**; the offline demo and a separate review's **65 boundary checks** also passed. This iteration adds **17 tests** for acronym handling, mandatory-concept selection, and paired behavior evidence, including decoys, explicit anchors, and CamelCase source names. Existing coverage includes visible-line/same-scope AST evidence and exclusions, short-circuit/comprehension/daemon boundaries, analysis limits, v2 anchors, CLI/Agent tools, platform/SSE boundaries, write approvals, context budgets, and DAG cancellation. Engineering tests and retrieval quality have separate acceptance results.
 
-This iteration's original integration command against CI-pinned FlowTrail `9249d59135009434229ba4525f124c53e5553ff8` failed with a generic error; the cause remains undetermined. A subsequent traced diagnostic invoking the same demo function passed all **12 check categories**, **7 events**, and cleanup, with explicitly mocked inference. Both outcomes are retained; this does not establish a consistently passing original command. Public-model answer quality and Docker builds/runs were not validated. CI covers Ubuntu/Windows with Python 3.11/3.12; see actual workflow runs for remote results.
+Against CI-pinned FlowTrail `9249d59135009434229ba4525f124c53e5553ff8`, the original integration command passed earlier in this iteration but returned a generic error when repeated after source freeze. A subsequent traced diagnostic invoking the same demo function completed **13 operations, 12 check categories, 7 events, and cleanup**, with no captured exception and explicitly mocked inference. The intermittent failure remains unexplained; this does not establish a consistently passing original command. Public-model answer quality and Docker builds/runs were not validated. CI covers Ubuntu/Windows with Python 3.11/3.12; see actual workflow runs for remote results.
 
 `src/paicli/` contains the CLI, Agent, tools, storage, index, planner, and API adapters. `tests/` contains the standard-library test suite; `examples/` contains inspectable fixtures and scripted responses. A Dockerfile is included for subsequent container validation.
 

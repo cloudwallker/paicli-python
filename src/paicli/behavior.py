@@ -22,6 +22,11 @@ BEHAVIOR_VOCABULARY = (
     ("synonym", ("同义词", "近义词"), ("synonym", "synonyms", "thesaurus")),
     ("tokenization", ("分词", "词元化"), ("tokenizer", "tokenize", "tokenization", "tokeniser")),
     ("pricing", ("价格", "计价"), ("price", "prices", "pricing")),
+    ("lease", ("租约",), ("lease",)),
+    ("heartbeat", ("心跳",), ("heartbeat",)),
+    ("migration", ("迁移",), ("migration", "migrate", "migrated", "migrating")),
+    ("allowlist", ("放行规则", "允许列表", "白名单"), ("allowlist", "whitelist")),
+    ("routing", ("路由",), ("routing", "router", "route", "routed")),
 )
 BEHAVIOR_CONCEPTS = frozenset(name for name, _, _ in BEHAVIOR_VOCABULARY)
 BEHAVIOR_POLICY = {
@@ -31,7 +36,7 @@ BEHAVIOR_POLICY = {
     "evidence": "non-stub function name, runtime Name.Load, loaded attribute, call target, call keyword, daemon attribute assigned literal True; visible complete source lines only",
     "excluded": "comments, strings, imports, class names, parameters, annotations and type aliases, TYPE_CHECKING branches, placeholder functions including excluded-only or statically nonrunning bodies; daemon keyword requires literal True",
     "scope": "module, class body, function, async function, lambda and each comprehension are separate; comprehension first iterable stays in enclosing scope, body/ifs/later iterables in comprehension scope; no cross-scope assembly",
-    "selection": "behavior queries gate the complete ranked pool before limiting hits; raw candidates retain top-k ranking; ordinary queries retain the v2 pre-gate limit",
+    "selection": "queries with required behaviors or natural acronym concepts gate the complete ranked pool before limiting hits; raw candidates retain top-k ranking; other queries retain the v2 pre-gate limit",
     "conditions": "preserve evaluated Boolean test prefixes even when the result is constant; omit only statically short-circuited operands and nonselected known If branches",
     "failure": "unsupported language, invalid Python, node budget or analysis failure supplies no behavior evidence; ordinary retrieval remains available",
     "meaning": "syntactic lexical evidence only; it does not establish runtime behavior or correctness",

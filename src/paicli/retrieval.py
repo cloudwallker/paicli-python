@@ -26,7 +26,7 @@ MAX_CHUNKS = 10_000
 MAX_CONTENT_BYTES = 8 * 1024 * 1024
 MAX_VISIBLE_CHARS = 8_000
 COVERAGE_THRESHOLD = 0.6
-ALGORITHM_VERSION = "bilingual-concept-bm25-v4"
+ALGORITHM_VERSION = "bilingual-concept-bm25-v5"
 SHORT_QUERY_MAX_CONCEPTS = 3
 
 # This syntactic policy is fixed before held-out evaluation. It does not infer
@@ -40,6 +40,7 @@ _ANCHOR_RULES = {
     "empty_gate": "no known concept and no anchor means insufficient evidence",
     "stopword_precedence": "explicit anchors are recognized before stopword filtering",
     "anchor_only_ranking": "anchors may create candidates; if no concept matches, sum binary-frequency BM25 per matched anchor",
+    "natural_acronym_plurals": "standalone known ordinary uppercase acronyms followed by lowercase s require their concept; backticks and compound/unknown names retain exact anchors",
 }
 
 # Each row describes one concept. Alternative spellings are alternatives, not
@@ -75,6 +76,7 @@ _VOCABULARY = (
     ("log", ("日志", "记录日志"), ("log", "logging", "logger")),
     ("command", ("命令", "命令行"), ("command", "cmd", "cli")),
     ("argument", ("参数",), ("argument", "arg", "parameter", "param")),
+    ("identifier", ("标识符", "编号"), ("id", "identifier")),
     ("process", ("进程", "子进程"), ("process", "subprocess")),
     ("thread", ("线程",), ("thread", "threading")),
     ("queue", ("队列",), ("queue", "enqueue", "dequeue")),
@@ -156,6 +158,14 @@ _ALIAS_CONCEPT = {alias: name for name, aliases in _CONCEPT_ALIASES.items() for 
 _ZH_WORDS = tuple(sorted({term for _, zh, _ in _VOCABULARY for term in zh} | _ZH_STOP, key=lambda term: (-len(term), term)))
 
 
+def _natural_acronym_concept(identifier: str) -> str | None:
+    """Only known ordinary acronym plurals; never stem an explicit name."""
+    if not re.fullmatch(r"[A-Z]{2,}s", identifier):
+        return None
+    concept = _ALIAS_CONCEPT.get(_normalize(identifier))
+    return concept if concept not in BEHAVIOR_CONCEPTS else None
+
+
 def _chinese_parts(text: str):
     offset = 0
     unknown = []
@@ -203,7 +213,16 @@ def _parts(text: str):
         else:
             for snake_part in identifier.split("_"):
                 if snake_part.isascii():
-                    yield from (_normalize(part) for part in _PARTS.findall(snake_part))
+                    offset = 0
+                    # Preserve known acronym plurals inside source names without
+                    # changing the exact components used by explicit anchors.
+                    for match in re.finditer(r"[A-Z]{2,}s(?=$|[A-Z]|[0-9])", snake_part):
+                        if not _natural_acronym_concept(match.group()):
+                            continue
+                        yield from (_normalize(part) for part in _PARTS.findall(snake_part[offset:match.start()]))
+                        yield _normalize(match.group())
+                        offset = match.end()
+                    yield from (_normalize(part) for part in _PARTS.findall(snake_part[offset:]))
                 elif snake_part:
                     yield _normalize(snake_part)
 
@@ -232,7 +251,7 @@ _PROFILE = {
     "unicode_version": unicodedata.unidata_version,
     "threshold": COVERAGE_THRESHOLD,
     "ranking": "coverage-desc,bm25-max-per-concept-desc,path,start_line,end_line,symbol",
-    "gate": "known-concept-and-anchor-coverage-at-least-threshold-and-all-anchors-in-visible-window-and-all-required-behaviors-in-one-visible-execution-scope",
+    "gate": "known-concept-and-anchor-coverage-at-least-threshold-and-all-anchors-and-required-concepts-in-visible-window-and-all-required-behaviors-in-one-visible-execution-scope",
     "anchor_rules": _ANCHOR_RULES,
     "behavior_policy": BEHAVIOR_POLICY,
     "behavior_vocabulary_hash": _hash(BEHAVIOR_VOCABULARY),
@@ -299,6 +318,8 @@ def _query_concepts(query: str) -> tuple[list[dict], list[str]]:
 
 def _query_policy(query: str, concepts: list[dict]) -> dict:
     anchors = {}
+    required_concepts = []
+    quoted_identifiers = set()
 
     def add(identifier, reason):
         term = unicodedata.normalize("NFC", identifier.casefold())
@@ -310,12 +331,18 @@ def _query_policy(query: str, concepts: list[dict]) -> dict:
     for quoted in re.findall(r"`([^`]+)`", query):
         for identifier in _identifier_runs(quoted):
             add(identifier, "backtick_identifier")
+            quoted_identifiers.add(unicodedata.normalize("NFC", identifier.casefold()))
     runs = list(_identifier_runs(query))
     mixed_han = any(_CJK.fullmatch(run) for run in runs)
     for position, identifier in enumerate(runs):
         if _CJK.fullmatch(identifier) or not any(character.isalpha() for character in identifier):
             continue
         normalized = unicodedata.normalize("NFC", identifier.casefold())
+        natural_concept = _natural_acronym_concept(identifier)
+        if natural_concept and normalized not in quoted_identifiers:
+            if natural_concept not in required_concepts:
+                required_concepts.append(natural_concept)
+            continue
         components = _identifier_components(identifier)
         if "_" in identifier or (len(components) > 1 and any(character.isupper() for character in identifier)):
             add(identifier, "structured_identifier")
@@ -337,6 +364,7 @@ def _query_policy(query: str, concepts: list[dict]) -> dict:
     return {
         "mode": "keywords" if short else "natural_language",
         "required_anchors": list(anchors.values()),
+        "required_concepts": required_concepts,
         "gate_concepts": [concept["term"] for concept in concepts if concept["kind"] == "concept"],
         "required_behaviors": [concept["term"] for concept in concepts if concept["term"] in BEHAVIOR_CONCEPTS],
         "soft_terms": [concept["term"] for concept in concepts if concept["kind"] == "literal" and concept["term"] not in anchored_parts],
@@ -510,6 +538,7 @@ class CodeRetriever:
         policy = _query_policy(query, concepts)
         anchors = policy["required_anchors"]
         required_behaviors = policy["required_behaviors"]
+        required_concepts = policy["required_concepts"]
         gate_concepts = set(policy["gate_concepts"])
         evidence_count = len(gate_concepts) + len(anchors)
         valid_paths = set()
@@ -567,22 +596,24 @@ class CodeRetriever:
             missing = [concept["term"] for concept in concepts if concept["term"] not in matched]
             missing_anchors = [anchor["term"] for anchor in anchors if anchor["term"] not in matched_anchors]
             evidence_coverage = (len(gate_concepts.intersection(matched)) + len(matched_anchors)) / evidence_count if evidence_count else 0.0
-            candidates.append({"path": window.path, "symbol": window.symbol, "start_line": window.start_line, "end_line": window.end_line, "content": window.content, "score": score, "lexical_coverage": coverage, "evidence_coverage": evidence_coverage, "matched_anchors": matched_anchors, "missing_anchors": missing_anchors, "matched_terms": matched, "unsupported_terms": missing, "matches": matches, "score_kind": score_kind, **_behavior_matches(window, required_behaviors)})
+            missing_required = [term for term in required_concepts if term not in matched]
+            candidates.append({"path": window.path, "symbol": window.symbol, "start_line": window.start_line, "end_line": window.end_line, "content": window.content, "score": score, "lexical_coverage": coverage, "evidence_coverage": evidence_coverage, "matched_anchors": matched_anchors, "missing_anchors": missing_anchors, "missing_required_concepts": missing_required, "matched_terms": matched, "unsupported_terms": missing, "matches": matches, "score_kind": score_kind, **_behavior_matches(window, required_behaviors)})
         candidates.sort(key=lambda hit: (-hit["lexical_coverage"], -hit["score"], hit["path"], hit["start_line"], hit["end_line"], hit["symbol"]))
-        # Behavior evidence can reject an arbitrary number of otherwise strong
-        # lexical matches, such as comments. Check the ranked pool before its
-        # hit limit so those decoys cannot hide a valid implementation. Keep
-        # raw top-k candidates for offline ranking comparisons and preserve the
-        # original limit policy for queries without a specific behavior.
-        checked = candidates if required_behaviors else candidates[:limit]
-        hits = [dict(candidate) for candidate in checked if candidate["evidence_coverage"] >= COVERAGE_THRESHOLD and not candidate["missing_anchors"] and candidate["behavior_scope_satisfied"]][:limit]
+        # Mandatory evidence can reject arbitrarily many strong lexical decoys.
+        # Gate the ranked pool before its hit limit for both behavior evidence
+        # and natural acronym concepts. Keep raw top-k for ranking comparisons.
+        checked = candidates if required_behaviors or required_concepts else candidates[:limit]
+        hits = [dict(candidate) for candidate in checked if candidate["evidence_coverage"] >= COVERAGE_THRESHOLD and not candidate["missing_anchors"] and not candidate["missing_required_concepts"] and candidate["behavior_scope_satisfied"]][:limit]
         best_coverage = max((candidate["evidence_coverage"] for candidate in checked), default=0.0)
         missing_anchors = [anchor["term"] for anchor in anchors if not any(anchor["term"] in candidate["matched_anchors"] for candidate in checked)]
         missing_behaviors = [behavior for behavior in required_behaviors if not any(behavior in candidate["matched_behaviors"] for candidate in checked)]
+        missing_required = [term for term in required_concepts if not any(term in candidate["matched_terms"] for candidate in checked)]
         if not concepts and not anchors:
             reason = "no_searchable_terms"
         elif missing_anchors:
             reason = "unsupported_required_anchors"
+        elif missing_required:
+            reason = "unsupported_required_concepts"
         elif not checked:
             reason = "no_visible_lexical_evidence"
         elif not evidence_count:
@@ -595,13 +626,13 @@ class CodeRetriever:
         elif best_coverage < COVERAGE_THRESHOLD:
             reason = "coverage_below_threshold"
         elif not hits:
-            reason = "required_anchors_not_in_same_candidate"
+            reason = "required_evidence_not_in_same_candidate" if required_concepts else "required_anchors_not_in_same_candidate"
         else:
             reason = "sufficient_lexical_coverage"
         return {
             "hits": hits,
             "candidates": candidates[:limit],
-            "decision": {"status": "accepted" if hits else "insufficient_evidence", "reason": reason, "threshold": COVERAGE_THRESHOLD, "best_coverage": best_coverage, "unsupported_terms": unsupported, "missing_anchors": missing_anchors, "missing_behaviors": missing_behaviors, "evidence_term_count": evidence_count, "meaning": "Heuristic lexical evidence only; insufficient evidence does not prove absence of an implementation. Unknown prose is soft evidence. Specific behavior concepts require visible Python identifiers in one execution scope, which still does not establish runtime semantics or correctness."},
+            "decision": {"status": "accepted" if hits else "insufficient_evidence", "reason": reason, "threshold": COVERAGE_THRESHOLD, "best_coverage": best_coverage, "unsupported_terms": unsupported, "missing_anchors": missing_anchors, "missing_required_concepts": missing_required, "missing_behaviors": missing_behaviors, "evidence_term_count": evidence_count, "meaning": "Heuristic lexical evidence only; insufficient evidence does not prove absence of an implementation. Unknown prose is soft evidence. Natural known acronym plurals require their concept. Specific behavior concepts require visible Python identifiers in one execution scope, which still does not establish runtime semantics or correctness."},
             "query": {"original": query, "concepts": concepts, "ignored_terms": ignored, **policy, "expansion": "General computing synonyms; snake_case/CamelCase/acronym splitting; NFC+casefold; Unicode literals retained; limited inflections; one vote per concept. Explicit anchors match within one identifier; ordinary prose is soft evidence."},
             "profile": {**copy.deepcopy(self._profile), "unavailable_files": len(self._stamps) - len(valid_paths)},
         }
